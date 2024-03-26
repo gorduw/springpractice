@@ -1,0 +1,77 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Spring MVC practice</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<p>Main web page</p>
+
+<script th:inline="javascript">
+
+    window.onload = function() {
+        // Make a GET request to /advisors/data after the page loads
+        fetch('/advisors/data')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Handle the response data here, if needed
+                console.log(data);
+
+                // Pass the retrieved data to the advisors table
+                var advisorsElement = document.getElementById('advisors');
+                advisorsElement.innerHTML = ""; // Clear existing data
+                if (data && data.length > 0) {
+                    var advisorsHtml = "";
+                    data.forEach(advisor => {
+                        advisorsHtml += "<tr><td>" + advisor.name + "</td><td>" + advisor.age + "</td><td><button data-advisor-id='" + advisor.id + "' onclick='editAdvisor(this)'>Edit</button><button data-advisor-id='" + advisor.id + "' onclick='deleteAdvisor(this)'>Delete</button></td></tr>";
+                    });
+                    advisorsElement.innerHTML = "<table><thead><tr><th>Name</th><th>Age</th><th>Action</th></tr></thead><tbody>" + advisorsHtml + "</tbody></table>";
+                } else {
+                    advisorsElement.innerHTML = "<h2>No advisors yet!</h2>";
+                }
+            })
+            .catch(error => {
+                // Handle errors here
+                console.error('There was a problem with the fetch operation:', error);
+            });
+    };
+
+    function deleteAdvisor(button) {
+        var advisorId = button.getAttribute('data-advisor-id');
+        // Make a DELETE request to /advisors/delete/{id}
+        fetch('/advisors/delete?id=' + advisorId, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            // Reload the page to reflect the changes
+            location.reload();
+        })
+        .catch(error => {
+            // Handle errors here
+            console.error('There was a problem with the delete operation:', error);
+        });
+    }
+
+    function editAdvisor(button) {
+        var advisorId = button.getAttribute('data-advisor-id');
+        // Redirect to the edit page with the advisor ID
+        window.location.href = '/advisors/edit/' + advisorId;
+    }
+</script>
+
+<div id="advisors">
+    <!-- Table data will be populated here -->
+</div>
+
+<p><a href="/advisors/create">Create a new advisor</a></p>
+
+</body>
+</html>

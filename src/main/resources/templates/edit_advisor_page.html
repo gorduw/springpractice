@@ -1,0 +1,57 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Spring MVC practice | Edit Advisor</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<p>Edit Advisor</p>
+
+<form id="editForm" method="PUT">
+    <input type="hidden" id="advisorId" th:value="${advisorEdit.id}" /> <!-- Hidden field for advisor ID -->
+    <label for="name">Name:</label><br>
+    <input type="text" id="name" th:value="${advisorEdit.name}" required/><br> <!-- Input field for advisor name -->
+    <label for="age">Age:</label><br>
+    <input type="number" id="age" th:value="${advisorEdit.age}" required/><br> <!-- Input field for advisor age -->
+    <input type="button" value="Update" onclick="updateAdvisor()"/> <!-- Button to trigger the update operation -->
+</form>
+
+<script th:inline="javascript">
+    function updateAdvisor() {
+        var advisorId = document.getElementById('advisorId').value;
+        var name = document.getElementById('name').value;
+        var age = document.getElementById('age').value;
+
+        var data = {
+            id: advisorId,
+            name: name,
+            age: age
+        };
+
+        fetch('/advisors/edit/' + advisorId, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (response.ok) {
+                // Advisor was successfully updated, redirect to the main page
+                window.location.href = '/advisors';
+            } else {
+                // Handle other status codes or errors if needed
+                console.error('Failed to update advisor:', response.statusText);
+            }
+        })
+        .catch(error => {
+            // Handle errors here
+            console.error('There was a problem with the update operation:', error);
+        });
+    }
+</script>
+
+</script>
+
+</body>
+</html>

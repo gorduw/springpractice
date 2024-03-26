@@ -1,0 +1,10 @@
+INSERT INTO advisor (age, name) VALUES (30, 'John Doe');
+INSERT INTO advisor (age, name) VALUES (35, 'Alice Smith');
+INSERT INTO advisor (age, name) VALUES (40, 'Bob Johnson');
+INSERT INTO advisor (age, name) VALUES (45, 'Emma Wilson');
+INSERT INTO advisor (age, name) VALUES (50, 'Michael Brown');
+INSERT INTO advisor (age, name) VALUES (55, 'Sophia Martinez');
+INSERT INTO advisor (age, name) VALUES (60, 'Olivia Jones');
+INSERT INTO advisor (age, name) VALUES (65, 'William Garcia');
+INSERT INTO advisor (age, name) VALUES (70, 'James Davis');
+INSERT INTO advisor (age, name) VALUES (75, 'Isabella Rodriguez');
