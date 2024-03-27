@@ -17,13 +17,11 @@ import java.util.Optional;
 
 @Controller
 @RequestMapping("/advisors")
-@ComponentScan(basePackages = "com.testing.sombra.repository")
 public class AdvisorController {
 
     private AdvisorRepository advisorRepository;
 
-    @Autowired
-    public AdvisorController(@Qualifier("advisorRepository") AdvisorRepository advisorRepository) {
+    public AdvisorController(AdvisorRepository advisorRepository) {
         this.advisorRepository = advisorRepository;
     }
 
