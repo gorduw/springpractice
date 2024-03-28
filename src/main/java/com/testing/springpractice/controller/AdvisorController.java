@@ -59,7 +59,6 @@ public class AdvisorController {
         Optional<Advisor> advisor = advisorRepository.findById(id);
         model.addAttribute("advisorEdit", advisor.get());
         return "edit_advisor_page";
-
     }
 
     @PutMapping("/edit/{id}")
