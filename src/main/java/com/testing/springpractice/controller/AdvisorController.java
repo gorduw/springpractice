@@ -2,14 +2,13 @@ package com.testing.springpractice.controller;
 
 import com.testing.springpractice.model.Advisor;
 import com.testing.springpractice.repository.AdvisorRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,10 +46,25 @@ public class AdvisorController {
         return "create_advisor_page";
     }
 
-    @PostMapping("/create")
+    @PostMapping(value = "/create", consumes = "application/json")
     public ResponseEntity addAdvisor(@RequestBody Advisor advisor) {
         Advisor newAdvisor = advisorRepository.save(advisor);
         return ResponseEntity.status(HttpStatus.CREATED).body(newAdvisor);
+    }
+
+    @PostMapping("/create")
+    public ModelAndView addAdvisorForm(@RequestParam String name, @RequestParam int age) {
+        // Process the form data and create the advisor
+        Advisor newAdvisor = new Advisor();
+        newAdvisor.setAge(age);
+        newAdvisor.setName(name);
+
+        advisorRepository.save(newAdvisor);
+
+        // Assuming you want to redirect to "/advisors" after creation
+
+        // Return the ResponseEntity with the RedirectView
+        return new ModelAndView("redirect:/advisors?success=true");
     }
 
 
@@ -62,7 +76,7 @@ public class AdvisorController {
 
     }
 
-    @PutMapping("/edit/{id}")
+    @PutMapping(value = "/edit/{id}", consumes = "application/json")
     public ResponseEntity editAdvisor(@RequestBody Advisor updatedAdvisor, @PathVariable Long id) {
         Optional<Advisor> advisorOptional = advisorRepository.findById(id);
         Advisor advisor = advisorOptional.get();
@@ -70,6 +84,17 @@ public class AdvisorController {
         advisor.setAge(updatedAdvisor.getAge());
         advisorRepository.save(advisor);
         return ResponseEntity.status(HttpStatus.OK).body(advisor);
+    }
+
+    @PutMapping("/edit/{id}")
+    public ModelAndView editAdvisorForm(@RequestParam String name, @RequestParam int age, @PathVariable Long id) {
+        Optional<Advisor> advisorOptional = advisorRepository.findById(id);
+        Advisor advisor = advisorOptional.get();
+        advisor.setAge(age);
+        advisor.setName(name);
+
+        advisorRepository.save(advisor);
+        return new ModelAndView("redirect:/advisors");
     }
 
 

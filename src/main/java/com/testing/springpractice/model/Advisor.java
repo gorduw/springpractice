@@ -3,6 +3,8 @@ package com.testing.springpractice.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 
 @Entity
