@@ -7,46 +7,13 @@
 <body>
 <p>Create New Advisor</p>
 
-<form id="createForm">
+<form th:action="@{/advisors/create}" method="post">
     <label for="name">Name:</label><br>
-    <input type="text" id="name" required/><br> <!-- Input field for advisor name -->
+    <input type="text" id="name" name="name" required/><br> <!-- Input field for advisor name -->
     <label for="age">Age:</label><br>
-    <input type="number" id="age" required/><br> <!-- Input field for advisor age -->
-    <input type="button" value="Create" onclick="createAdvisor()"/> <!-- Button to trigger the creation of the advisor -->
+    <input type="number" id="age" name="age" required/><br> <!-- Input field for advisor age -->
+    <input type="submit" value="Create"/> <!-- Button to trigger the creation of the advisor -->
 </form>
 
-<script th:inline="javascript">
-        function createAdvisor() {
-            var name = document.getElementById('name').value;
-            var age = document.getElementById('age').value;
-
-            var data = {
-                name: name,
-                age: age
-            };
-
-            fetch('/advisors/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Advisor was successfully created
-                    alert('Advisor created successfully');
-                    window.location.href = '/advisors';
-                } else {
-                    // Handle other status codes or errors if needed
-                    console.error('Failed to create advisor:', response.statusText);
-                }
-            })
-            .catch(error => {
-                // Handle errors here
-                console.error('There was a problem with the creation operation:', error);
-            });
-        }
-    </script>
 </body>
 </html>
