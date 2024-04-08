@@ -1,14 +1,17 @@
 package com.testing.springpractice.controller;
 
 import com.testing.springpractice.model.Advisor;
+import com.testing.springpractice.model.Portfolio;
 import com.testing.springpractice.repository.AdvisorRepository;
+import com.testing.springpractice.service.AdvisorService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +22,9 @@ import java.util.Optional;
 public class AdvisorController {
 
     private AdvisorRepository advisorRepository;
+
+    @Autowired
+    private AdvisorService advisorService;
 
     public AdvisorController(AdvisorRepository advisorRepository) {
         this.advisorRepository = advisorRepository;
@@ -40,6 +46,13 @@ public class AdvisorController {
         }
     }
 
+    @GetMapping("/name/{advisorId}")
+    public ResponseEntity<String> getAdvisorName(@PathVariable Long advisorId) {
+        String advisorName = advisorRepository.findById(advisorId)
+                .map(Advisor::getName)
+                .orElse("Advisor Not Found");
+        return ResponseEntity.ok(advisorName);
+    }
 
     @GetMapping("/create")
     public String getCreatePage() {
@@ -61,9 +74,6 @@ public class AdvisorController {
 
         advisorRepository.save(newAdvisor);
 
-        // Assuming you want to redirect to "/advisors" after creation
-
-        // Return the ResponseEntity with the RedirectView
         return new ModelAndView("redirect:/advisors?success=true");
     }
 
@@ -73,7 +83,6 @@ public class AdvisorController {
         Optional<Advisor> advisor = advisorRepository.findById(id);
         model.addAttribute("advisorEdit", advisor.get());
         return "edit_advisor_page";
-
     }
 
     @PutMapping(value = "/edit/{id}", consumes = "application/json")
@@ -113,5 +122,21 @@ public class AdvisorController {
         }
     }
 
+    @GetMapping("/{id}/portfolios/page")
+    public String getAdvisorsPortfoliosPage(Model model, @PathVariable Long id) {
+        model.addAttribute("advisorId", id);
+        return "portfolio_page";
+    }
+
+    @GetMapping("/{id}/portfolios/data")
+    public ResponseEntity getAdvisorPortfolios(@PathVariable Long id) {
+        try {
+            List<Portfolio> portfolios = advisorService.getAdvisorPortfolios(id);
+            return ResponseEntity.ok(portfolios);
+        } catch (ResponseStatusException ex) {
+            System.out.println(ex.getMessage());
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getMessage());
+        }
+    }
 
 }
