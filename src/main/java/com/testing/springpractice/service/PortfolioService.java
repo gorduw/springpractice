@@ -27,7 +27,7 @@ public class PortfolioService {
 
     public Portfolio createPortfolioWithAssets(Portfolio portfolio) {
         if (portfolio == null) {
-            throw new IllegalArgumentException("Portfolio cannot be null");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Portfolio is missing");
         }
 
         if (advisorRepository.findById(portfolio.getAdvisorId()).isEmpty()) {
