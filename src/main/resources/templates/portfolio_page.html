@@ -1,0 +1,74 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Spring MVC practice | View Advisor's Portfolio</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<p id="advisorName">Advisor Name: </p>
+
+<!-- Use Thymeleaf to set the advisorId as a data attribute on an element -->
+<div id="advisorIdHolder" th:data-advisor-id="${advisorId}" style="display:none;"></div>
+
+<div id="portfolio">
+    <!-- Portfolio data will be populated here -->
+</div>
+
+<script th:inline="javascript">
+        function fetchAdvisorName(advisorId) {
+            fetch('/advisors/name/' + advisorId)
+                .then(response => response.text())
+                .then(name => {
+                    document.getElementById('advisorName').textContent = 'Advisor Name: ' + name;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+            function fetchAdvisorPortfolios(advisorId) {
+        fetch('/advisors/' + advisorId + '/portfolios/data')
+            .then(response => response.json())
+            .then(portfolios => {
+                var portfolioDiv = document.getElementById('portfolio');
+                if (portfolios && portfolios.length > 0) {
+                    var portfoliosHtml = '<table style="width: 100%; border-collapse: collapse; border: 1px solid black;">';
+                    portfoliosHtml += '<tr style="border: 1px solid black;"><th>Portfolio Name</th><th>Risk Profile</th><th>Time Range</th><th>Assets</th></tr>';
+
+                    portfolios.forEach(portfolio => {
+                        portfoliosHtml += '<tr style="border: 1px solid black;">';
+                        portfoliosHtml += `<td style="border: 1px solid black;">${portfolio.name}</td>`;
+                        portfoliosHtml += `<td style="border: 1px solid black;">${portfolio.riskProfile}</td>`;
+                        portfoliosHtml += `<td style="border: 1px solid black;">${portfolio.timeRange}</td>`;
+
+                        if (portfolio.assets && portfolio.assets.length > 0) {
+                            portfoliosHtml += '<td style="border: 1px solid black;"><table style="width: 100%; border-collapse: collapse;">';
+
+                            portfolio.assets.forEach(asset => {
+                                portfoliosHtml += `<tr><td style="border: 1px solid black;">${asset.name}</td><td style="border: 1px solid black;">${asset.code}</td><td style="border: 1px solid black;">$${asset.price.toFixed(2)}</td></tr>`;
+                            });
+
+                            portfoliosHtml += '</table></td>';
+                        } else {
+                            portfoliosHtml += '<td style="border: 1px solid black;">No assets</td>';
+                        }
+
+                        portfoliosHtml += '</tr>';
+                    });
+
+                    portfoliosHtml += '</table>';
+                    portfolioDiv.innerHTML = portfoliosHtml;
+                } else {
+                    portfolioDiv.innerHTML = "<h2>No portfolios found for this advisor.</h2>";
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+        window.onload = function() {
+            // Retrieve advisorId from the data attribute
+            var advisorId = document.getElementById('advisorIdHolder').getAttribute('data-advisor-id');
+
+            fetchAdvisorName(advisorId);
+            fetchAdvisorPortfolios(advisorId);
+        };
+    </script>
+</body>
+</html>

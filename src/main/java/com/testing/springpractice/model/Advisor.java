@@ -3,8 +3,6 @@ package com.testing.springpractice.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 
 @Entity
@@ -20,8 +18,5 @@ public class Advisor {
 
     @Column(nullable = false)
     private Integer age;
-
-    // private String email;
-    // private String city;
 
 }
