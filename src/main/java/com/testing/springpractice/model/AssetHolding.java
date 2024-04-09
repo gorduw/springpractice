@@ -31,4 +31,14 @@ public class AssetHolding {
             joinColumns = @JoinColumn(name = " asset_id"),
             inverseJoinColumns = @JoinColumn(name = "portfolio_id"))
     private List<Portfolio> portfolios;
+
+    @Override
+    public String toString() {
+        return "AssetHolding{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", code='" + code + '\'' +
+                ", price=" + price +
+                '}';
+    }
 }
