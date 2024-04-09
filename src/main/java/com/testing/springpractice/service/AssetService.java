@@ -1,6 +1,7 @@
 package com.testing.springpractice.service;
 
 import com.testing.springpractice.model.AssetHolding;
+import com.testing.springpractice.model.Portfolio;
 import com.testing.springpractice.repository.AssetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,5 +58,13 @@ public class AssetService {
         return assetRepository.save(existingAsset);
     }
 
+    public List<Portfolio> getPortfoliosByAssetId(Long assetId) {
+        Optional<AssetHolding> asset = assetRepository.findById(assetId);
+        if (asset.isPresent()) {
+            return asset.get().getPortfolios();
+        } else {
+            return Collections.emptyList();
+        }
+    }
 
 }

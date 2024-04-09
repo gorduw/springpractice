@@ -56,10 +56,6 @@ public class PortfolioService {
         Portfolio existingPortfolio = portfolioRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Portfolio not found"));
 
-        if (updatedPortfolio.getAdvisorId() != null &&
-                !updatedPortfolio.getAdvisorId().equals(existingPortfolio.getAdvisorId())) {
-            throw new IllegalStateException("Portfolio is already assigned to another advisor");
-        }
 
         existingPortfolio.setName(updatedPortfolio.getName());
         existingPortfolio.setTimeRange(updatedPortfolio.getTimeRange());
