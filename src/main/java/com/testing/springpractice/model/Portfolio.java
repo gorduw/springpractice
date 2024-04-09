@@ -25,14 +25,14 @@ public class Portfolio {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RiskProfile riskProfile;
-
+/*
     @Column(nullable = false, name = "fk_advisor_id")
     private Long advisorId;
-/*
-    @ManyToOne
-    @JoinColumn(name = "advisor_id", nullable = false)
-    private Advisor advisor;
 */
+    @ManyToOne
+    @JoinColumn(name = "fk_advisor_id", nullable = false)
+    private Advisor advisor;
+
     @ManyToMany
     @JoinTable(name = "portfolio_asset_xref",
             joinColumns = @JoinColumn(name = "portfolio_id"),

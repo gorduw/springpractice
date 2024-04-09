@@ -30,15 +30,15 @@ public class PortfolioService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Portfolio is missing");
         }
 
-        if (advisorRepository.findById(portfolio.getAdvisorId()).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Advisor not found with id " + portfolio.getAdvisorId());
+        if (advisorRepository.findById(portfolio.getAdvisor().getId()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Advisor not found with id " + portfolio.getAdvisor().getId());
         }
 
         Portfolio portfolioNew = new Portfolio();
         portfolioNew.setName(portfolio.getName());
         portfolioNew.setTimeRange(portfolio.getTimeRange());
         portfolioNew.setRiskProfile(portfolio.getRiskProfile());
-        portfolioNew.setAdvisorId(portfolio.getAdvisorId());
+        portfolioNew.setAdvisor(portfolio.getAdvisor());
 
 
         List<Long> assetIds = portfolio.getAssets().stream()
@@ -60,7 +60,7 @@ public class PortfolioService {
         existingPortfolio.setName(updatedPortfolio.getName());
         existingPortfolio.setTimeRange(updatedPortfolio.getTimeRange());
         existingPortfolio.setRiskProfile(updatedPortfolio.getRiskProfile());
-        existingPortfolio.setAdvisorId(updatedPortfolio.getAdvisorId());
+        existingPortfolio.setAdvisor(updatedPortfolio.getAdvisor());
 
 
         List<Long> assetIds = updatedPortfolio.getAssets().stream()
