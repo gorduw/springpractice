@@ -31,6 +31,11 @@ public class AssetController {
         return ResponseEntity.status(HttpStatus.OK).body(assetService.getAssetsAll());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity getPortfolioAssignedToAsset(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(assetService.getPortfoliosByAssetId(id));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteAsset(@PathVariable Long id) {
         try {

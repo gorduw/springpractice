@@ -28,7 +28,11 @@ public class Portfolio {
 
     @Column(nullable = false, name = "fk_advisor_id")
     private Long advisorId;
-
+/*
+    @ManyToOne
+    @JoinColumn(name = "advisor_id", nullable = false)
+    private Advisor advisor;
+*/
     @ManyToMany
     @JoinTable(name = "portfolio_asset_xref",
             joinColumns = @JoinColumn(name = "portfolio_id"),
