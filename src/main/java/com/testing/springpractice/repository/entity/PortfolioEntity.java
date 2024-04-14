@@ -1,4 +1,4 @@
-package com.testing.springpractice.model;
+package com.testing.springpractice.repository.entity;
 
 
 import jakarta.persistence.*;
@@ -9,7 +9,8 @@ import java.util.List;
 
 @Entity
 @Data
-public class Portfolio {
+@Table(name = "portfolio")
+public class PortfolioEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,19 +26,19 @@ public class Portfolio {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RiskProfile riskProfile;
-
+/*
     @Column(nullable = false, name = "fk_advisor_id")
     private Long advisorId;
-/*
-    @ManyToOne
-    @JoinColumn(name = "advisor_id", nullable = false)
-    private Advisor advisor;
 */
+    @ManyToOne
+    @JoinColumn(name = "fk_advisor_id", nullable = false)
+    private AdvisorEntity advisorEntity;
+
     @ManyToMany
     @JoinTable(name = "portfolio_asset_xref",
             joinColumns = @JoinColumn(name = "portfolio_id"),
             inverseJoinColumns = @JoinColumn(name = "asset_id"))
-    private List<AssetHolding> assets;
+    private List<AssetHoldingEntity> assets;
 
 
     public enum TimeRange {

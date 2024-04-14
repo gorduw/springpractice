@@ -1,4 +1,4 @@
-package com.testing.springpractice.model;
+package com.testing.springpractice.repository.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -10,7 +10,8 @@ import java.util.List;
 
 @Entity
 @Data
-public class AssetHolding {
+@Table(name = "asset_holding")
+public class AssetHoldingEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,18 +28,11 @@ public class AssetHolding {
 
     @JsonIgnore
     @ManyToMany
-    @JoinTable(name = "portfolio_asset_xref",
-            joinColumns = @JoinColumn(name = " asset_id"),
-            inverseJoinColumns = @JoinColumn(name = "portfolio_id"))
-    private List<Portfolio> portfolios;
+    @JoinTable(name = "portfolio_asset_xref", joinColumns = @JoinColumn(name = " asset_id"), inverseJoinColumns = @JoinColumn(name = "portfolio_id"))
+    private List<PortfolioEntity> portfolioEntities;
 
     @Override
     public String toString() {
-        return "AssetHolding{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", code='" + code + '\'' +
-                ", price=" + price +
-                '}';
+        return "AssetHolding{" + "id=" + id + ", name='" + name + '\'' + ", code='" + code + '\'' + ", price=" + price + '}';
     }
 }

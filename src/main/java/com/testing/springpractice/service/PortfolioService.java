@@ -1,7 +1,7 @@
 package com.testing.springpractice.service;
 
-import com.testing.springpractice.model.AssetHolding;
-import com.testing.springpractice.model.Portfolio;
+import com.testing.springpractice.repository.entity.AssetHoldingEntity;
+import com.testing.springpractice.repository.entity.PortfolioEntity;
 import com.testing.springpractice.repository.AdvisorRepository;
 import com.testing.springpractice.repository.AssetRepository;
 import com.testing.springpractice.repository.PortfolioRepository;
@@ -18,60 +18,63 @@ import java.util.Optional;
 @Service
 public class PortfolioService {
 
-    @Autowired
-    private PortfolioRepository portfolioRepository;
+    private final PortfolioRepository portfolioRepository;
+    private final AdvisorRepository advisorRepository;
+    private final AssetService assetService;
+    private final AssetRepository assetRepository;
 
-    @Autowired
-    private AdvisorRepository advisorRepository;
+    public PortfolioService(PortfolioRepository portfolioRepository,
+                            AdvisorRepository advisorRepository,
+                            AssetService assetService,
+                            AssetRepository assetRepository) {
+        this.portfolioRepository = portfolioRepository;
+        this.advisorRepository = advisorRepository;
+        this.assetService = assetService;
+        this.assetRepository = assetRepository;
+    }
 
-    @Autowired
-    private AssetService assetService;
-
-    @Autowired
-    private AssetRepository assetRepository;
-
-    public Portfolio createPortfolioWithAssets(Portfolio portfolio) {
-        if (portfolio == null) {
+    public PortfolioEntity createPortfolioWithAssets(final PortfolioEntity portfolioEntity) {
+        if (portfolioEntity == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Portfolio is missing");
         }
 
-        if (advisorRepository.findById(portfolio.getAdvisorId()).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Advisor not found with id " + portfolio.getAdvisorId());
+        if (advisorRepository.findById(portfolioEntity.getId()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Advisor not found with id " + portfolioEntity.getId());
         }
 
-        Portfolio portfolioNew = new Portfolio();
-        portfolioNew.setName(portfolio.getName());
-        portfolioNew.setTimeRange(portfolio.getTimeRange());
-        portfolioNew.setRiskProfile(portfolio.getRiskProfile());
-        portfolioNew.setAdvisorId(portfolio.getAdvisorId());
+        PortfolioEntity portfolioEntityNew = new PortfolioEntity();
+        portfolioEntityNew.setName(portfolioEntity.getName());
+        portfolioEntityNew.setTimeRange(portfolioEntity.getTimeRange());
+        portfolioEntityNew.setRiskProfile(portfolioEntity.getRiskProfile());
+        portfolioEntityNew.setAdvisorEntity(portfolioEntity.getAdvisorEntity());
 
-        portfolioNew.setAssets(getAssetsFromPayload(portfolio));
+        portfolioEntityNew.setAssets(getAssetsFromPayload(portfolioEntity));
 
 
-        return (Portfolio) portfolioRepository.save(portfolioNew);
+        return (PortfolioEntity) portfolioRepository.save(portfolioEntityNew);
     }
 
-    public Portfolio updatePortfolio(Long id, Portfolio updatedPortfolio) {
-        Portfolio existingPortfolio = portfolioRepository.findById(id)
+    public PortfolioEntity updatePortfolio(final Long id, final PortfolioEntity updatedPortfolioEntity) {
+        PortfolioEntity existingPortfolioEntity = portfolioRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Portfolio not found"));
 
 
-        existingPortfolio.setName(updatedPortfolio.getName());
-        existingPortfolio.setTimeRange(updatedPortfolio.getTimeRange());
-        existingPortfolio.setRiskProfile(updatedPortfolio.getRiskProfile());
-        existingPortfolio.setAdvisorId(updatedPortfolio.getAdvisorId());
+        existingPortfolioEntity.setName(updatedPortfolioEntity.getName());
+        existingPortfolioEntity.setTimeRange(updatedPortfolioEntity.getTimeRange());
+        existingPortfolioEntity.setRiskProfile(updatedPortfolioEntity.getRiskProfile());
+        existingPortfolioEntity.setAdvisorEntity(updatedPortfolioEntity.getAdvisorEntity());
 
-        existingPortfolio.setAssets(getAssetsFromPayload(updatedPortfolio));
+        existingPortfolioEntity.setAssets(getAssetsFromPayload(updatedPortfolioEntity));
 
-        return portfolioRepository.save(existingPortfolio);
+        return portfolioRepository.save(existingPortfolioEntity);
     }
 
 
-    public List<AssetHolding> getAssetsFromPayload(Portfolio portfolio) {
-        List<AssetHolding> listOfAssets = new ArrayList<>();
-        portfolio.getAssets().forEach(asset -> {
-            Optional<AssetHolding> optionalAsset = assetRepository.findById(asset.getId());
-            AssetHolding foundAsset = optionalAsset.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asset not found with id " + asset.getId()));
+    public List<AssetHoldingEntity> getAssetsFromPayload(final PortfolioEntity portfolioEntity) {
+        List<AssetHoldingEntity> listOfAssets = new ArrayList<>();
+        portfolioEntity.getAssets().forEach(asset -> {
+            Optional<AssetHoldingEntity> optionalAsset = assetRepository.findById(asset.getId());
+            AssetHoldingEntity foundAsset = optionalAsset.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asset not found with id " + asset.getId()));
             listOfAssets.add(foundAsset);
         });
         return listOfAssets;
