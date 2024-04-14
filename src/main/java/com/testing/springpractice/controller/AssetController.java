@@ -1,7 +1,7 @@
 package com.testing.springpractice.controller;
 
 
-import com.testing.springpractice.model.AssetHolding;
+import com.testing.springpractice.repository.entity.AssetHoldingEntity;
 import com.testing.springpractice.service.AssetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,9 +17,10 @@ public class AssetController {
 
 
     @PostMapping(consumes = "application/json")
-    public ResponseEntity<?> createAsset(@RequestBody AssetHolding asset) {
+    @ResponseBody
+    public ResponseEntity<?> createAsset(@RequestBody AssetHoldingEntity asset) {
         try {
-            AssetHolding newAsset = assetService.createAsset(asset);
+            AssetHoldingEntity newAsset = assetService.createAsset(asset);
             return ResponseEntity.status(HttpStatus.CREATED).body(newAsset);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
@@ -27,17 +28,20 @@ public class AssetController {
     }
 
     @GetMapping("/data")
+    @ResponseBody
     public ResponseEntity getAssetAll() {
         return ResponseEntity.status(HttpStatus.OK).body(assetService.getAssetsAll());
     }
 
     @GetMapping("/{id}")
+    @ResponseBody
     public ResponseEntity getPortfolioAssignedToAsset(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(assetService.getPortfoliosByAssetId(id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteAsset(@PathVariable Long id) {
+    @ResponseBody
+    public ResponseEntity<?> deleteAsset(@PathVariable final Long id) {
         try {
             assetService.deleteAsset(id);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Asset deleted successfully");
@@ -47,9 +51,10 @@ public class AssetController {
     }
 
     @PutMapping(value = "/{id}", consumes = "application/json")
-    public ResponseEntity<?> updateAsset(@PathVariable Long id, @RequestBody AssetHolding asset) {
+    @ResponseBody
+    public ResponseEntity<?> updateAsset(@PathVariable Long id, @RequestBody AssetHoldingEntity asset) {
         try {
-            AssetHolding updatedAsset = assetService.updateAsset(id, asset);
+            AssetHoldingEntity updatedAsset = assetService.updateAsset(id, asset);
             return ResponseEntity.ok(updatedAsset);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating asset");

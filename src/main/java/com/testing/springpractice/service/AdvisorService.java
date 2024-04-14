@@ -1,8 +1,10 @@
 package com.testing.springpractice.service;
 
 
-import com.testing.springpractice.model.Advisor;
-import com.testing.springpractice.model.Portfolio;
+import com.testing.springpractice.dto.AdvisorDTO;
+import com.testing.springpractice.mapper.AdvisorToDtoMapper;
+import com.testing.springpractice.repository.entity.AdvisorEntity;
+import com.testing.springpractice.repository.entity.PortfolioEntity;
 import com.testing.springpractice.repository.AdvisorRepository;
 import com.testing.springpractice.repository.PortfolioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,22 +17,28 @@ import java.util.List;
 @Service
 public class AdvisorService {
 
-    @Autowired
-    private AdvisorRepository advisorRepository;
+    private final AdvisorRepository advisorRepository;
+    private final PortfolioRepository portfolioRepository;
 
-    @Autowired
-    private PortfolioRepository portfolioRepository;
+    public AdvisorService(AdvisorRepository advisorRepository, PortfolioRepository portfolioRepository) {
+        this.advisorRepository = advisorRepository;
+        this.portfolioRepository = portfolioRepository;
+    }
 
-    public List<Portfolio> getAdvisorPortfolios(Long advisorId) {
-        Advisor advisor = advisorRepository.findById(advisorId)
+    public List<PortfolioEntity> getAdvisorPortfolios(final Long advisorId) {
+        AdvisorEntity advisorEntity = advisorRepository.findById(advisorId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Advisor not found with id " + advisorId));
 
-        List<Portfolio> portfolios = portfolioRepository.findByAdvisorId(advisorId);
+        List<PortfolioEntity> portfolioEntities = portfolioRepository.findByAdvisorId(advisorId);
 
-        portfolios.forEach(portfolio -> {
+        portfolioEntities.forEach(portfolio -> {
             portfolio.getAssets().size();
         });
 
-        return portfolios;
+        return portfolioEntities;
+    }
+
+    public AdvisorDTO getAdvisorDto(Long id) {
+        return AdvisorToDtoMapper.INSTANCE.advisorToAdvisorDTO(advisorRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Advisor not found with id " + id)));
     }
 }

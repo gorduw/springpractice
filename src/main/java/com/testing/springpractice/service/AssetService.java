@@ -1,7 +1,8 @@
 package com.testing.springpractice.service;
 
-import com.testing.springpractice.model.AssetHolding;
-import com.testing.springpractice.model.Portfolio;
+import com.testing.springpractice.exception.NotFoundException;
+import com.testing.springpractice.repository.entity.AssetHoldingEntity;
+import com.testing.springpractice.repository.entity.PortfolioEntity;
 import com.testing.springpractice.repository.AssetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,31 +14,34 @@ import java.util.Optional;
 @Service
 public class AssetService {
 
+    private final AssetRepository assetRepository;
+
     @Autowired
-    private AssetRepository assetRepository;
-
-
-    public List<AssetHolding> getAssetsAll() {
-        return (List<AssetHolding>) assetRepository.findAll();
+    public AssetService(AssetRepository assetRepository) {
+        this.assetRepository = assetRepository;
     }
 
-    public AssetHolding createAsset(AssetHolding asset) {
+    public List<AssetHoldingEntity> getAssetsAll() {
+        return (List<AssetHoldingEntity>) assetRepository.findAll();
+    }
+
+    public AssetHoldingEntity createAsset(final AssetHoldingEntity asset) {
         return assetRepository.save(asset);
     }
 
-    public Optional<AssetHolding> findById(Long id) {
+    public Optional<AssetHoldingEntity> findById(final Long id) {
         return assetRepository.findById(id);
     }
 
-    public void deleteAsset(Long id) {
-        AssetHolding asset = assetRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Asset not found with id " + id));
+    public void deleteAsset(final Long id) {
+        AssetHoldingEntity asset = assetRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Asset not found with id " + id));
         assetRepository.delete(asset);
     }
 
-    public AssetHolding updateAsset(Long id, AssetHolding updatedAsset) {
-        AssetHolding existingAsset = assetRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Asset not found with id " + id));
+    public AssetHoldingEntity updateAsset(final Long id, final AssetHoldingEntity updatedAsset) {
+        AssetHoldingEntity existingAsset = assetRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Asset not found with id " + id));
 
         existingAsset.setName(updatedAsset.getName());
         existingAsset.setCode(updatedAsset.getCode());
@@ -46,13 +50,12 @@ public class AssetService {
         return assetRepository.save(existingAsset);
     }
 
-    public List<Portfolio> getPortfoliosByAssetId(Long assetId) {
-        Optional<AssetHolding> asset = assetRepository.findById(assetId);
+    public List<PortfolioEntity> getPortfoliosByAssetId(final Long assetId) {
+        Optional<AssetHoldingEntity> asset = assetRepository.findById(assetId);
         if (asset.isPresent()) {
-            return asset.get().getPortfolios();
+            return asset.get().getPortfolioEntities();
         } else {
             return Collections.emptyList();
         }
     }
-
 }

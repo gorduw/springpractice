@@ -1,4 +1,4 @@
-package com.testing.springpractice.model;
+package com.testing.springpractice.repository.entity;
 
 
 import jakarta.persistence.*;
@@ -7,7 +7,8 @@ import lombok.Data;
 
 @Entity
 @Data
-public class Advisor {
+@Table(name="advisor")
+public class AdvisorEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
