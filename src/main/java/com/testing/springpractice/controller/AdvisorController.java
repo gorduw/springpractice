@@ -1,11 +1,10 @@
 package com.testing.springpractice.controller;
 
-import com.testing.springpractice.exception.NotFoundException;
-import com.testing.springpractice.repository.entity.AdvisorEntity;
-import com.testing.springpractice.repository.entity.PortfolioEntity;
+import com.testing.springpractice.dto.AdvisorDTO;
+import com.testing.springpractice.mapper.AdvisorToDtoMapperImpl;
 import com.testing.springpractice.repository.AdvisorRepository;
+import com.testing.springpractice.repository.entity.PortfolioEntity;
 import com.testing.springpractice.service.AdvisorService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -15,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @Controller
@@ -24,11 +22,11 @@ public class AdvisorController {
 
     private AdvisorRepository advisorRepository;
 
-    @Autowired
     private AdvisorService advisorService;
 
-    public AdvisorController(AdvisorRepository advisorRepository) {
+    public AdvisorController(AdvisorRepository advisorRepository, AdvisorService advisorService) {
         this.advisorRepository = advisorRepository;
+        this.advisorService = advisorService;
     }
 
     @GetMapping
@@ -38,21 +36,14 @@ public class AdvisorController {
 
     @GetMapping("/data")
     @ResponseBody
-    public ResponseEntity<List<AdvisorEntity>> getAllAdvisorsData() {
-        try {
-            List<AdvisorEntity> advisorEntities = (List<AdvisorEntity>) advisorRepository.findAll();
-            return ResponseEntity.status(HttpStatus.OK).body(advisorEntities);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    public ResponseEntity<List<AdvisorDTO>> getAllAdvisorsData() {
+        return ResponseEntity.status(HttpStatus.OK).body(advisorService.getAllAdvisorDto());
     }
 
     @GetMapping("/name/{advisorId}")
     @ResponseBody
     public ResponseEntity<String> getAdvisorName(@PathVariable Long advisorId) {
-        String advisorName = advisorRepository.findById(advisorId)
-                .map(AdvisorEntity::getName)
-                .orElse("Advisor Not Found");
+        String advisorName = advisorService.findAdvisorById(advisorId).getName();
         return ResponseEntity.ok(advisorName);
     }
 
@@ -63,20 +54,20 @@ public class AdvisorController {
 
     @PostMapping(value = "/create", consumes = "application/json")
     @ResponseBody
-    public ResponseEntity addAdvisor(@RequestBody AdvisorEntity advisorEntity) {
-        AdvisorEntity newAdvisorEntity = advisorRepository.save(advisorEntity);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newAdvisorEntity);
+    public ResponseEntity addAdvisor(@RequestBody AdvisorDTO advisorDTO) {
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(advisorService.postAdvisorDto(advisorDTO));
     }
 
     @PostMapping("/create")
     @ResponseBody
     public ModelAndView addAdvisorForm(@RequestParam String name, @RequestParam int age) {
         // Process the form data and create the advisor
-        AdvisorEntity newAdvisorEntity = new AdvisorEntity();
-        newAdvisorEntity.setAge(age);
-        newAdvisorEntity.setName(name);
+        AdvisorDTO newAdvisorDto = new AdvisorDTO();
+        newAdvisorDto.setAge(age);
+        newAdvisorDto.setName(name);
 
-        advisorRepository.save(newAdvisorEntity);
+        advisorRepository.save(AdvisorToDtoMapperImpl.INSTANCE.advisorDtoToAdvisor(newAdvisorDto));
 
         return new ModelAndView("redirect:/advisors?success=true");
     }
@@ -84,31 +75,28 @@ public class AdvisorController {
 
     @GetMapping("/edit/{id}")
     public String getEditAdvisorPage(Model model, @PathVariable Long id) {
-        Optional<AdvisorEntity> advisor = advisorRepository.findById(id);
-        model.addAttribute("advisorEdit", advisor.get());
+        AdvisorDTO advisorDTO = advisorService.findAdvisorById(id);
+        model.addAttribute("advisorEdit", advisorDTO);
         return "edit_advisor_page";
     }
 
     @PutMapping(value = "/edit/{id}", consumes = "application/json")
     @ResponseBody
-    public ResponseEntity editAdvisor(@RequestBody AdvisorEntity updatedAdvisorEntity, @PathVariable Long id) {
-        Optional<AdvisorEntity> advisorOptional = advisorRepository.findById(id);
-        AdvisorEntity advisorEntity = advisorOptional.get();
-        advisorEntity.setName(updatedAdvisorEntity.getName());
-        advisorEntity.setAge(updatedAdvisorEntity.getAge());
-        advisorRepository.save(advisorEntity);
-        return ResponseEntity.status(HttpStatus.OK).body(advisorEntity);
+    public ResponseEntity editAdvisor(@RequestBody AdvisorDTO updatedAdvisorDto, @PathVariable Long id) {
+        AdvisorDTO advisorDTO = advisorService.findAdvisorById(id);
+        advisorDTO.setName(updatedAdvisorDto.getName());
+        advisorDTO.setAge(updatedAdvisorDto.getAge());
+        advisorService.updateAdvisor(advisorDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(advisorDTO);
     }
 
     @PutMapping("/edit/{id}")
     @ResponseBody
     public ModelAndView editAdvisorForm(@RequestParam String name, @RequestParam int age, @PathVariable Long id) {
-        Optional<AdvisorEntity> advisorOptional = advisorRepository.findById(id);
-        AdvisorEntity advisorEntity = advisorOptional.get();
-        advisorEntity.setAge(age);
-        advisorEntity.setName(name);
-
-        advisorRepository.save(advisorEntity);
+        AdvisorDTO advisorDTO = advisorService.findAdvisorById(id);
+        advisorDTO.setName(name);
+        advisorDTO.setAge(age);
+        advisorService.updateAdvisor(advisorDTO);
         return new ModelAndView("redirect:/advisors");
     }
 
@@ -116,8 +104,7 @@ public class AdvisorController {
     @DeleteMapping("/delete")
     @ResponseBody
     public ResponseEntity<String> deleteAdvisor(@RequestParam(value = "id") Long id) {
-        AdvisorEntity advisor = advisorRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Advisor not found"));
+        AdvisorDTO advisorDTO = advisorService.findAdvisorById(id);
 
         advisorRepository.deleteById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Advisor deleted successfully");

@@ -13,4 +13,6 @@ AdvisorToDtoMapper INSTANCE = Mappers.getMapper(AdvisorToDtoMapper.class);
 
     @Mapping(source = "id", target = "advisorId")
     AdvisorDTO advisorToAdvisorDTO(AdvisorEntity advisorEntity);
+
+    AdvisorEntity advisorDtoToAdvisor(AdvisorDTO advisorDTO);
 }

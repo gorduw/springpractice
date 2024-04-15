@@ -7,9 +7,9 @@
 <body>
 <p>Edit Advisor</p>
 
-<form th:action="@{'/advisors/edit/' + ${advisorEdit.id}}" th:object="${advisorEdit}" method="PUT" th:method="PUT">
+<form th:action="@{'/advisors/edit/' + ${advisorEdit.advisorId}}" th:object="${advisorEdit}" method="PUT" th:method="PUT">
     <input type="hidden" name="_method" value="PUT" /> <!-- Hidden field to specify the request method as PUT -->
-    <input type="hidden" th:field="*{id}" /> <!-- Hidden field for advisor ID -->
+    <input type="hidden" th:field="*{advisorId}" /> <!-- Hidden field for advisor ID -->
     <label for="name">Name:</label><br>
     <input type="text" id="name" th:field="*{name}" required/><br> <!-- Input field for advisor name -->
     <label for="age">Age:</label><br>

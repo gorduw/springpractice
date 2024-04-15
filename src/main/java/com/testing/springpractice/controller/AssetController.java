@@ -3,7 +3,6 @@ package com.testing.springpractice.controller;
 
 import com.testing.springpractice.repository.entity.AssetHoldingEntity;
 import com.testing.springpractice.service.AssetService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,9 +11,12 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/asset")
 public class AssetController {
-    @Autowired
+
     private AssetService assetService;
 
+    public AssetController(AssetService assetService) {
+        this.assetService = assetService;
+    }
 
     @PostMapping(consumes = "application/json")
     @ResponseBody

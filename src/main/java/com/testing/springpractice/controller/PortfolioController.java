@@ -4,7 +4,6 @@ package com.testing.springpractice.controller;
 import com.testing.springpractice.repository.PortfolioRepository;
 import com.testing.springpractice.repository.entity.PortfolioEntity;
 import com.testing.springpractice.service.PortfolioService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -18,11 +17,14 @@ import java.util.Optional;
 @RequestMapping("/portfolio")
 public class PortfolioController {
 
-    @Autowired
     private PortfolioService portfolioService;
 
-    @Autowired
     private PortfolioRepository portfolioRepository;
+
+    public PortfolioController(PortfolioRepository portfolioRepository, PortfolioService portfolioService) {
+        this.portfolioRepository = portfolioRepository;
+        this.portfolioService = portfolioService;
+    }
 
     @PostMapping(consumes = "application/json")
     @ResponseBody

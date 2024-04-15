@@ -16,7 +16,6 @@ public class AssetService {
 
     private final AssetRepository assetRepository;
 
-    @Autowired
     public AssetService(AssetRepository assetRepository) {
         this.assetRepository = assetRepository;
     }
@@ -35,13 +34,13 @@ public class AssetService {
 
     public void deleteAsset(final Long id) {
         AssetHoldingEntity asset = assetRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Asset not found with id " + id));
+                .orElseThrow(() -> new NotFoundException("Asset", "ID", id.toString()));
         assetRepository.delete(asset);
     }
 
     public AssetHoldingEntity updateAsset(final Long id, final AssetHoldingEntity updatedAsset) {
         AssetHoldingEntity existingAsset = assetRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Asset not found with id " + id));
+                .orElseThrow(() -> new NotFoundException("Asset", "ID", id.toString()));
 
         existingAsset.setName(updatedAsset.getName());
         existingAsset.setCode(updatedAsset.getCode());

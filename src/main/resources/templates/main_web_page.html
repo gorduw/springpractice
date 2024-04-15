@@ -28,7 +28,7 @@ function getAllAdvisors() {
         if (data && data.length > 0) {
             var advisorsHtml = "";
             data.forEach(advisor => {
-                advisorsHtml += "<tr><td>" + advisor.name + "</td><td>" + advisor.age + "</td><td><button data-advisor-id='" + advisor.id + "' onclick='editAdvisor(this)'>Edit</button><button data-advisor-id='" + advisor.id + "' onclick='deleteAdvisor(this)'>Delete</button><button data-advisor-id='" + advisor.id + "' onclick='viewPortfolios(this)'>View Portfolios</button></td></tr>";
+                advisorsHtml += "<tr><td>" + advisor.name + "</td><td>" + advisor.age + "</td><td><button data-advisor-id='" + advisor.advisorId + "' onclick='editAdvisor(this)'>Edit</button><button data-advisor-id='" + advisor.advisorId + "' onclick='deleteAdvisor(this)'>Delete</button><button data-advisor-id='" + advisor.advisorId + "' onclick='viewPortfolios(this)'>View Portfolios</button></td></tr>";
             });
             advisorsElement.innerHTML = "<table><thead><tr><th>Name</th><th>Age</th><th>Action</th></tr></thead><tbody>" + advisorsHtml + "</tbody></table>";
         } else {

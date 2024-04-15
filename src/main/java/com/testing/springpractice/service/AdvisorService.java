@@ -2,17 +2,19 @@ package com.testing.springpractice.service;
 
 
 import com.testing.springpractice.dto.AdvisorDTO;
-import com.testing.springpractice.mapper.AdvisorToDtoMapper;
-import com.testing.springpractice.repository.entity.AdvisorEntity;
-import com.testing.springpractice.repository.entity.PortfolioEntity;
+import com.testing.springpractice.exception.NotFoundException;
+import com.testing.springpractice.mapper.AdvisorToDtoMapperImpl;
 import com.testing.springpractice.repository.AdvisorRepository;
 import com.testing.springpractice.repository.PortfolioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.testing.springpractice.repository.entity.AdvisorEntity;
+import com.testing.springpractice.repository.entity.PortfolioEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AdvisorService {
@@ -38,7 +40,31 @@ public class AdvisorService {
         return portfolioEntities;
     }
 
-    public AdvisorDTO getAdvisorDto(Long id) {
-        return AdvisorToDtoMapper.INSTANCE.advisorToAdvisorDTO(advisorRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Advisor not found with id " + id)));
+
+    public List<AdvisorDTO> getAllAdvisorDto() {
+        List<AdvisorEntity> advisorEntities = new ArrayList<>();
+        advisorRepository.findAll().forEach(advisorEntities::add);
+
+        List<AdvisorDTO> advisorDTOs = advisorEntities.stream()
+                .map(advisor -> AdvisorToDtoMapperImpl.INSTANCE.advisorToAdvisorDTO(advisor))
+                .collect(Collectors.toList());
+
+        return advisorDTOs;
+    }
+
+    public AdvisorDTO findAdvisorById(Long id) {
+        return advisorRepository.findById(id)
+                .map(AdvisorToDtoMapperImpl.INSTANCE::advisorToAdvisorDTO)
+                .orElseThrow(() -> new NotFoundException("Advisor", "ID", id.toString()));
+    }
+
+    public AdvisorDTO postAdvisorDto(AdvisorDTO advisorDTO) {
+        AdvisorEntity advisorEntity = advisorRepository.save(AdvisorToDtoMapperImpl.INSTANCE.advisorDtoToAdvisor(advisorDTO));
+        return AdvisorToDtoMapperImpl.INSTANCE.advisorToAdvisorDTO(advisorEntity);
+    }
+
+    public AdvisorDTO updateAdvisor(AdvisorDTO advisorDTO) {
+        AdvisorEntity advisorEntity = advisorRepository.save(AdvisorToDtoMapperImpl.INSTANCE.advisorDtoToAdvisor(advisorDTO));
+        return AdvisorToDtoMapperImpl.INSTANCE.advisorToAdvisorDTO(advisorEntity);
     }
 }

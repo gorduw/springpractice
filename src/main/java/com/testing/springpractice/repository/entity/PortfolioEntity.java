@@ -26,10 +26,7 @@ public class PortfolioEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RiskProfile riskProfile;
-/*
-    @Column(nullable = false, name = "fk_advisor_id")
-    private Long advisorId;
-*/
+
     @ManyToOne
     @JoinColumn(name = "fk_advisor_id", nullable = false)
     private AdvisorEntity advisorEntity;
