@@ -52,18 +52,18 @@ public class AdvisorService {
         return advisorDTOs;
     }
 
-    public AdvisorDTO findAdvisorById(Long id) {
+    public AdvisorDTO findAdvisorById(final Long id) {
         return advisorRepository.findById(id)
                 .map(AdvisorToDtoMapperImpl.INSTANCE::advisorToAdvisorDTO)
                 .orElseThrow(() -> new NotFoundException("Advisor", "ID", id.toString()));
     }
 
-    public AdvisorDTO postAdvisorDto(AdvisorDTO advisorDTO) {
+    public AdvisorDTO postAdvisorDto(final AdvisorDTO advisorDTO) {
         AdvisorEntity advisorEntity = advisorRepository.save(AdvisorToDtoMapperImpl.INSTANCE.advisorDtoToAdvisor(advisorDTO));
         return AdvisorToDtoMapperImpl.INSTANCE.advisorToAdvisorDTO(advisorEntity);
     }
 
-    public AdvisorDTO updateAdvisor(AdvisorDTO advisorDTO) {
+    public AdvisorDTO updateAdvisor(final AdvisorDTO advisorDTO) {
         AdvisorEntity advisorEntity = advisorRepository.save(AdvisorToDtoMapperImpl.INSTANCE.advisorDtoToAdvisor(advisorDTO));
         return AdvisorToDtoMapperImpl.INSTANCE.advisorToAdvisorDTO(advisorEntity);
     }
