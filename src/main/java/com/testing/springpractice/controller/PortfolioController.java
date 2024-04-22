@@ -1,19 +1,25 @@
 package com.testing.springpractice.controller;
 
 
+import com.testing.springpractice.dto.PortfolioDTO;
 import com.testing.springpractice.repository.PortfolioRepository;
 import com.testing.springpractice.repository.entity.PortfolioEntity;
 import com.testing.springpractice.service.PortfolioService;
+import com.testing.springpractice.util.csv.PortfolioCsvUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
 import java.util.Optional;
 
-@Controller
+@RestController
 @RequestMapping("/portfolio")
 public class PortfolioController {
 
@@ -28,21 +34,14 @@ public class PortfolioController {
 
     @PostMapping(consumes = "application/json")
     @ResponseBody
-    public ResponseEntity createPortfolioWithAssets(@RequestBody PortfolioEntity portfolioEntity) {
+    public ResponseEntity createPortfolioWithAssets(@RequestBody PortfolioDTO portfolio) {
         try {
-            PortfolioEntity newPortfolioEntity = portfolioService.createPortfolioWithAssets(portfolioEntity);
-            return ResponseEntity.status(HttpStatus.CREATED).body(newPortfolioEntity);
+            PortfolioDTO newPortfolio = portfolioService.createPortfolioWithAssets(portfolio);
+            return ResponseEntity.status(HttpStatus.CREATED).body(newPortfolio);
         } catch (ResponseStatusException ex) {
             System.out.println(ex.getMessage());
             return ResponseEntity.status(ex.getStatusCode()).body(ex.getMessage());
         }
-    }
-
-    @GetMapping("/{id}")
-    public String getPortfolioPage(Model model, @PathVariable Long id) {
-        Optional<PortfolioEntity> portfolio = portfolioRepository.findById(id);
-        model.addAttribute("portfolio", portfolio.get());
-        return "portfolio_page";
     }
 
     @DeleteMapping("/delete")
@@ -59,14 +58,69 @@ public class PortfolioController {
 
     @PutMapping(value = "/edit/{id}", consumes = "application/json")
     @ResponseBody
-    public ResponseEntity<?> editPortfolio(@RequestBody PortfolioEntity updatedPortfolioEntity, @PathVariable Long id) {
+    public ResponseEntity<?> editPortfolio(@RequestBody PortfolioDTO updatedPortfolio, @PathVariable Long id) {
         try {
-            PortfolioEntity updated = portfolioService.updatePortfolio(id, updatedPortfolioEntity);
+            PortfolioDTO updated = portfolioService.updatePortfolio(id, updatedPortfolio);
             return ResponseEntity.ok(updated);
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Portfolio was not updated due to an error: " + e.getMessage());
         }
     }
 
+
+    @GetMapping(value = "/download_csv", produces = "text/csv")
+    public void downloadPortfolios(HttpServletResponse response) {
+        response.setHeader("Content-Disposition", "attachment; filename=\"portfolios.csv\"");
+
+        List<PortfolioEntity> portfolios = (List<PortfolioEntity>) portfolioRepository.findAll();
+        PortfolioCsvUtil.writePortfoliosToCsv(response, portfolios);
+    }
+
+    @GetMapping("/generate_csv")
+    public void generateCsvFile(HttpServletResponse response) {
+        String filePath = "portfolios.csv";
+        List<PortfolioEntity> portfolios = (List<PortfolioEntity>) portfolioRepository.findAll();
+        PortfolioCsvUtil.writePortfolioToCsvServerSide(filePath, portfolios);
+
+        FileInputStream in = null;
+        OutputStream out = null;
+        File file = new File(filePath);
+        try {
+            in = new FileInputStream(file);
+            out = response.getOutputStream();
+
+            response.setContentType("text/csv");
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
+
+            byte[] buffer = new byte[1024];
+            int numBytesRead;
+
+            while ((numBytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, numBytesRead);
+            }
+
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        } finally {
+
+            try {
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (file.exists() && !file.delete()) {
+                System.err.println("Failed to delete the file: " + file.getPath());
+            }
+        }
+    }
 
 }

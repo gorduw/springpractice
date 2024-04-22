@@ -10,9 +10,10 @@ import org.mapstruct.factory.Mappers;
 public interface AssetToDtoMapper {
     AssetToDtoMapper INSTANCE = Mappers.getMapper(AssetToDtoMapper.class);
 
-    @Mapping(source = "id", target = "id")
-    AssetHoldingDTO assetToAssetDto(AssetHoldingEntity assetHoldingEntity);
+    @Mapping(target = "portfolioDTOS", ignore = true)
+    AssetHoldingDTO assetToAssetDtoWithoutPortfolios(AssetHoldingEntity assetHoldingEntity);
 
-    @Mapping(source = "id", target = "id")
+    AssetHoldingDTO assetToAssetDtoWithPortfolios(AssetHoldingEntity assetHoldingEntity);
+
     AssetHoldingEntity assetDtoToAsset(AssetHoldingDTO assetHoldingDTO);
 }

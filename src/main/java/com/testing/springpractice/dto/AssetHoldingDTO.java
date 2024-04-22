@@ -1,16 +1,13 @@
 package com.testing.springpractice.dto;
 
-import com.testing.springpractice.repository.entity.PortfolioEntity;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-@Data
-public class AssetHoldingDTO {
-    private Long id;
-    private String name;
-    private String code;
-    private BigDecimal price;
-    private List<PortfolioEntity> portfolioEntities;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record AssetHoldingDTO(Long id, String name, String code, BigDecimal price, List<PortfolioDTO> portfolioDTOS) {
+
 }

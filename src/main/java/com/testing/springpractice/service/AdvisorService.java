@@ -2,8 +2,11 @@ package com.testing.springpractice.service;
 
 
 import com.testing.springpractice.dto.AdvisorDTO;
+import com.testing.springpractice.dto.PortfolioDTO;
 import com.testing.springpractice.exception.NotFoundException;
 import com.testing.springpractice.mapper.AdvisorToDtoMapperImpl;
+import com.testing.springpractice.mapper.PortfolioToDtoMapper;
+import com.testing.springpractice.mapper.PortfolioToDtoMapperImpl;
 import com.testing.springpractice.repository.AdvisorRepository;
 import com.testing.springpractice.repository.PortfolioRepository;
 import com.testing.springpractice.repository.entity.AdvisorEntity;
@@ -27,18 +30,6 @@ public class AdvisorService {
         this.portfolioRepository = portfolioRepository;
     }
 
-    public List<PortfolioEntity> getAdvisorPortfolios(final Long advisorId) {
-        AdvisorEntity advisorEntity = advisorRepository.findById(advisorId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Advisor not found with id " + advisorId));
-
-        List<PortfolioEntity> portfolioEntities = portfolioRepository.findByAdvisorId(advisorId);
-
-        portfolioEntities.forEach(portfolio -> {
-            portfolio.getAssets().size();
-        });
-
-        return portfolioEntities;
-    }
 
 
     public List<AdvisorDTO> getAllAdvisorDto() {

@@ -1,97 +1,101 @@
 package com.testing.springpractice.controller;
 
 import com.testing.springpractice.dto.AdvisorDTO;
+import com.testing.springpractice.dto.PortfolioDTO;
 import com.testing.springpractice.mapper.AdvisorToDtoMapperImpl;
 import com.testing.springpractice.repository.AdvisorRepository;
-import com.testing.springpractice.repository.entity.PortfolioEntity;
 import com.testing.springpractice.service.AdvisorService;
+import com.testing.springpractice.service.PortfolioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 
-
-@Controller
+@RestController
 @RequestMapping("/advisors")
+@Tag(name = "Advisor Management", description = "Controller for managing advisors")
 public class AdvisorController {
 
     private AdvisorRepository advisorRepository;
 
     private AdvisorService advisorService;
 
-    public AdvisorController(AdvisorRepository advisorRepository, AdvisorService advisorService) {
+    private PortfolioService portfolioService;
+
+    public AdvisorController(AdvisorRepository advisorRepository, AdvisorService advisorService, PortfolioService portfolioService) {
         this.advisorRepository = advisorRepository;
         this.advisorService = advisorService;
-    }
-
-    @GetMapping
-    public String getAllAdvisorsPage() {
-        return "main_web_page";
+        this.portfolioService = portfolioService;
     }
 
     @GetMapping("/data")
     @ResponseBody
+    @Operation(summary = "List all advisors", description = "Retrieve all advisors in the system as data transfer objects.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved list")
     public ResponseEntity<List<AdvisorDTO>> getAllAdvisorsData() {
         return ResponseEntity.status(HttpStatus.OK).body(advisorService.getAllAdvisorDto());
     }
 
-    @GetMapping("/name/{advisorId}")
+    @GetMapping("/name/{id}")
     @ResponseBody
-    public ResponseEntity<String> getAdvisorName(@PathVariable Long advisorId) {
-        String advisorName = advisorService.findAdvisorById(advisorId).getName();
+    @Operation(summary = "Get advisor name", description = "Fetch the name of a specific advisor by their ID.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved name")
+    public ResponseEntity<String> getAdvisorName(@PathVariable Long id) {
+        String advisorName = advisorService.findAdvisorById(id).getName();
         return ResponseEntity.ok(advisorName);
     }
 
-    @GetMapping("/create")
-    public String getCreatePage() {
-        return "create_advisor_page";
-    }
 
     @PostMapping(value = "/create", consumes = "application/json")
     @ResponseBody
+    @Operation(summary = "Create an advisor", description = "Create a new advisor with details provided in JSON format.")
+    @ApiResponse(responseCode = "201", description = "Advisor created successfully")
     public ResponseEntity addAdvisor(@RequestBody AdvisorDTO advisorDTO) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(advisorService.postAdvisorDto(advisorDTO));
     }
 
     @PostMapping("/create")
-    @ResponseBody
-    public ModelAndView addAdvisorForm(@RequestParam String name, @RequestParam int age) {
-        // Process the form data and create the advisor
+    @Operation(summary = "Create advisor via form", description = "Create a new advisor using form data.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "303", description = "Advisor created successfully and redirected", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
+    public ModelAndView addAdvisorForm(
+            @Parameter(description = "Name of the advisor", required = true) @RequestParam String name,
+            @Parameter(description = "Age of the advisor", required = true) @RequestParam int age) {
         AdvisorDTO newAdvisorDto = new AdvisorDTO();
-        newAdvisorDto.setAge(age);
         newAdvisorDto.setName(name);
-
+        newAdvisorDto.setAge(age);
         advisorRepository.save(AdvisorToDtoMapperImpl.INSTANCE.advisorDtoToAdvisor(newAdvisorDto));
-
         return new ModelAndView("redirect:/advisors?success=true");
     }
 
 
-    @GetMapping("/edit/{id}")
-    public String getEditAdvisorPage(Model model, @PathVariable Long id) {
-        AdvisorDTO advisorDTO = advisorService.findAdvisorById(id);
-        model.addAttribute("advisorEdit", advisorDTO);
-        return "edit_advisor_page";
-    }
-
     @PutMapping(value = "/edit/{id}", consumes = "application/json")
-    @ResponseBody
-    public ResponseEntity editAdvisor(@RequestBody AdvisorDTO updatedAdvisorDto, @PathVariable Long id) {
+    @Operation(summary = "Update advisor details", description = "Update an advisor's details via JSON input.")
+    @ApiResponse(responseCode = "200", description = "Advisor updated successfully")
+    public ResponseEntity<AdvisorDTO> editAdvisor(
+            @Parameter(description = "Updated advisor DTO", required = true) @RequestBody AdvisorDTO updatedAdvisorDto,
+            @Parameter(description = "ID of the advisor to update", required = true) @PathVariable Long id) {
         AdvisorDTO advisorDTO = advisorService.findAdvisorById(id);
         advisorDTO.setName(updatedAdvisorDto.getName());
         advisorDTO.setAge(updatedAdvisorDto.getAge());
         advisorService.updateAdvisor(advisorDTO);
-        return ResponseEntity.status(HttpStatus.OK).body(advisorDTO);
+        return ResponseEntity.ok(advisorDTO);
     }
 
     @PutMapping("/edit/{id}")
-    @ResponseBody
+    @Operation(summary = "Update advisor details form", description = "Update an advisor's details via form input.")
+    @ApiResponse(responseCode = "200", description = "Advisor updated successfully")
     public ModelAndView editAdvisorForm(@RequestParam String name, @RequestParam int age, @PathVariable Long id) {
         AdvisorDTO advisorDTO = advisorService.findAdvisorById(id);
         advisorDTO.setName(name);
@@ -100,32 +104,25 @@ public class AdvisorController {
         return new ModelAndView("redirect:/advisors");
     }
 
-
     @DeleteMapping("/delete")
-    @ResponseBody
-    public ResponseEntity<String> deleteAdvisor(@RequestParam(value = "id") Long id) {
-        AdvisorDTO advisorDTO = advisorService.findAdvisorById(id);
-
+    @Operation(summary = "Delete an advisor", description = "Delete an advisor based on ID.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Advisor deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Advisor not found")
+    })
+    public ResponseEntity<String> deleteAdvisor(
+            @Parameter(description = "ID of the advisor to delete", required = true) @RequestParam Long id) {
         advisorRepository.deleteById(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Advisor deleted successfully");
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}/portfolios/page")
-    public String getAdvisorsPortfoliosPage(Model model, @PathVariable Long id) {
-        model.addAttribute("advisorId", id);
-        return "portfolio_page";
-    }
 
     @GetMapping("/{id}/portfolios/data")
-    @ResponseBody
-    public ResponseEntity getAdvisorPortfolios(@PathVariable Long id) {
-        try {
-            List<PortfolioEntity> portfolioEntities = advisorService.getAdvisorPortfolios(id);
-            return ResponseEntity.ok(portfolioEntities);
-        } catch (ResponseStatusException ex) {
-            System.out.println(ex.getMessage());
-            return ResponseEntity.status(ex.getStatusCode()).body(ex.getMessage());
-        }
+    @Operation(summary = "Get advisor portfolios data", description = "Retrieve data for all portfolios managed by a specific advisor.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved portfolios")
+    public ResponseEntity<List<PortfolioDTO>> getAdvisorPortfolios(
+            @Parameter(description = "ID of the advisor to retrieve portfolios for", required = true) @PathVariable Long id) {
+        List<PortfolioDTO> portfolioEntities = portfolioService.getAdvisorPortfolios(id);
+        return ResponseEntity.ok(portfolioEntities);
     }
-
 }

@@ -39,10 +39,10 @@
                         portfoliosHtml += `<td style="border: 1px solid black;">${portfolio.riskProfile}</td>`;
                         portfoliosHtml += `<td style="border: 1px solid black;">${portfolio.timeRange}</td>`;
 
-                        if (portfolio.assets && portfolio.assets.length > 0) {
+                        if (portfolio.assetHoldings && portfolio.assetHoldings.length > 0) {
                             portfoliosHtml += '<td style="border: 1px solid black;"><table style="width: 100%; border-collapse: collapse;">';
 
-                            portfolio.assets.forEach(asset => {
+                            portfolio.assetHoldings.forEach(asset => {
                                 portfoliosHtml += `<tr><td style="border: 1px solid black;">${asset.name}</td><td style="border: 1px solid black;">${asset.code}</td><td style="border: 1px solid black;">$${asset.price.toFixed(2)}</td></tr>`;
                             });
 
