@@ -1,14 +1,13 @@
 package com.testing.springpractice.controller;
 
 
-import com.testing.springpractice.repository.entity.AssetHoldingEntity;
+import com.testing.springpractice.dto.AssetHoldingDTO;
 import com.testing.springpractice.service.AssetService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @RequestMapping("/asset")
 public class AssetController {
 
@@ -20,19 +19,15 @@ public class AssetController {
 
     @PostMapping(consumes = "application/json")
     @ResponseBody
-    public ResponseEntity<?> createAsset(@RequestBody AssetHoldingEntity asset) {
-        try {
-            AssetHoldingEntity newAsset = assetService.createAsset(asset);
-            return ResponseEntity.status(HttpStatus.CREATED).body(newAsset);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+    public ResponseEntity createAsset(@RequestBody AssetHoldingDTO asset) {
+        AssetHoldingDTO newAsset = assetService.createAsset(asset);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newAsset);
     }
 
     @GetMapping("/data")
     @ResponseBody
     public ResponseEntity getAssetAll() {
-        return ResponseEntity.status(HttpStatus.OK).body(assetService.getAssetsAll());
+        return ResponseEntity.status(HttpStatus.OK).body(assetService.getAssetsDtoAll());
     }
 
     @GetMapping("/{id}")
@@ -44,22 +39,14 @@ public class AssetController {
     @DeleteMapping("/{id}")
     @ResponseBody
     public ResponseEntity<?> deleteAsset(@PathVariable final Long id) {
-        try {
-            assetService.deleteAsset(id);
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Asset deleted successfully");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting asset");
-        }
+        assetService.deleteAsset(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Asset deleted successfully");
     }
 
     @PutMapping(value = "/{id}", consumes = "application/json")
     @ResponseBody
-    public ResponseEntity<?> updateAsset(@PathVariable Long id, @RequestBody AssetHoldingEntity asset) {
-        try {
-            AssetHoldingEntity updatedAsset = assetService.updateAsset(id, asset);
-            return ResponseEntity.ok(updatedAsset);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating asset");
-        }
+    public ResponseEntity<?> updateAsset(@PathVariable Long id, @RequestBody AssetHoldingDTO asset) {
+        AssetHoldingDTO updatedAsset = assetService.updateAsset(id, asset);
+        return ResponseEntity.ok(updatedAsset);
     }
 }

@@ -7,6 +7,11 @@
 <body>
 <p>Main web page</p>
 
+<!-- Logout Form -->
+<form th:action="@{/logout}" method="post" style="display:inline;">
+    <input type="submit" value="Logout" style="background-color: red; color: white; border: none; padding: 5px 10px; cursor: pointer;"/>
+</form>
+
 <script th:inline="javascript">
 
 window.onload = function() { getAllAdvisors();

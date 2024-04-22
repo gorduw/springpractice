@@ -1,6 +1,9 @@
 package com.testing.springpractice.repository.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.testing.springpractice.util.enums.RiskProfileEnum;
+import com.testing.springpractice.util.enums.TimeRangeEnum;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -21,29 +24,21 @@ public class PortfolioEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TimeRange timeRange;
+    private TimeRangeEnum.TimeRange timeRange;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private RiskProfile riskProfile;
+    private RiskProfileEnum.RiskProfile riskProfile;
 
     @ManyToOne
     @JoinColumn(name = "fk_advisor_id", nullable = false)
     private AdvisorEntity advisorEntity;
 
+    @JsonManagedReference
     @ManyToMany
     @JoinTable(name = "portfolio_asset_xref",
             joinColumns = @JoinColumn(name = "portfolio_id"),
             inverseJoinColumns = @JoinColumn(name = "asset_id"))
     private List<AssetHoldingEntity> assets;
-
-
-    public enum TimeRange {
-        LESS_THAN_THREE, THREE_TO_TEN, MORE_THAN_TEN
-    }
-
-    public enum RiskProfile {
-        S, M, L
-    }
 
 }

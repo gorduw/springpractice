@@ -1,6 +1,7 @@
 package com.testing.springpractice.repository.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -26,7 +27,7 @@ public class AssetHoldingEntity {
     @Column(nullable = false)
     private BigDecimal price;
 
-    @JsonIgnore
+    @JsonBackReference
     @ManyToMany
     @JoinTable(name = "portfolio_asset_xref", joinColumns = @JoinColumn(name = " asset_id"), inverseJoinColumns = @JoinColumn(name = "portfolio_id"))
     private List<PortfolioEntity> portfolioEntities;

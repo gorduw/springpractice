@@ -14,5 +14,9 @@ public class MainWebPageController {
         return "welcome_page";
     }
 
+    @GetMapping("/login")
+    public String login() {
+        return "login_page";
+    }
 
 }

@@ -1,13 +1,18 @@
 package com.testing.springpractice.service;
 
+import com.testing.springpractice.dto.AssetHoldingDTO;
+import com.testing.springpractice.dto.PortfolioDTO;
 import com.testing.springpractice.exception.NotFoundException;
+import com.testing.springpractice.mapper.AdvisorToDtoMapperImpl;
+import com.testing.springpractice.mapper.AssetToDtoMapperImpl;
+import com.testing.springpractice.repository.AssetRepository;
+import com.testing.springpractice.repository.entity.AdvisorEntity;
 import com.testing.springpractice.repository.entity.AssetHoldingEntity;
 import com.testing.springpractice.repository.entity.PortfolioEntity;
-import com.testing.springpractice.repository.AssetRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,16 +25,20 @@ public class AssetService {
         this.assetRepository = assetRepository;
     }
 
-    public List<AssetHoldingEntity> getAssetsAll() {
-        return (List<AssetHoldingEntity>) assetRepository.findAll();
+    public List<AssetHoldingDTO> getAssetsDtoAll() {
+
+        List<AssetHoldingDTO> assetHoldingDTOS = new ArrayList<>();
+        assetRepository.findAll().forEach(asset -> assetHoldingDTOS.add(AssetToDtoMapperImpl.INSTANCE.assetToAssetDtoWithoutPortfolios(asset)));
+        return assetHoldingDTOS;
     }
 
-    public AssetHoldingEntity createAsset(final AssetHoldingEntity asset) {
-        return assetRepository.save(asset);
+    public AssetHoldingDTO createAsset(final AssetHoldingDTO asset) {
+        AssetHoldingEntity createdAsset = assetRepository.save(AssetToDtoMapperImpl.INSTANCE.assetDtoToAsset(asset));
+        return AssetToDtoMapperImpl.INSTANCE.assetToAssetDtoWithoutPortfolios(createdAsset);
     }
 
-    public Optional<AssetHoldingEntity> findById(final Long id) {
-        return assetRepository.findById(id);
+    public AssetHoldingEntity findById(final Long id) {
+        return assetRepository.findById(id).orElseThrow();
     }
 
     public void deleteAsset(final Long id) {
@@ -38,23 +47,27 @@ public class AssetService {
         assetRepository.delete(asset);
     }
 
-    public AssetHoldingEntity updateAsset(final Long id, final AssetHoldingEntity updatedAsset) {
+    public AssetHoldingDTO updateAsset(final Long id, final AssetHoldingDTO updatedAsset) {
         AssetHoldingEntity existingAsset = assetRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Asset", "ID", id.toString()));
 
-        existingAsset.setName(updatedAsset.getName());
-        existingAsset.setCode(updatedAsset.getCode());
-        existingAsset.setPrice(updatedAsset.getPrice());
+        existingAsset.setName(updatedAsset.name());
+        existingAsset.setCode(updatedAsset.code());
+        existingAsset.setPrice(updatedAsset.price());
 
-        return assetRepository.save(existingAsset);
+        AssetHoldingDTO updatedAssetDTO = AssetToDtoMapperImpl.INSTANCE.assetToAssetDtoWithoutPortfolios(assetRepository.save(existingAsset));
+        return updatedAssetDTO;
     }
 
-    public List<PortfolioEntity> getPortfoliosByAssetId(final Long assetId) {
+    public List<PortfolioDTO> getPortfoliosByAssetId(final Long assetId) {
         Optional<AssetHoldingEntity> asset = assetRepository.findById(assetId);
-        if (asset.isPresent()) {
-            return asset.get().getPortfolioEntities();
-        } else {
-            return Collections.emptyList();
-        }
+        List<PortfolioDTO> portfolioDTOS = new ArrayList<>();
+        asset.stream().forEach(a -> System.out.println(AssetToDtoMapperImpl.INSTANCE.assetToAssetDtoWithPortfolios(a).portfolioDTOS()) );
+        return portfolioDTOS;
+    }
+
+    public BigDecimal getPrice(final Long assetId) {
+        System.out.println(assetRepository.findById(assetId));
+        return assetRepository.findById(assetId).orElseThrow().getPrice();
     }
 }
