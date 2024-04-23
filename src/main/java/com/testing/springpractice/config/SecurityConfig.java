@@ -35,9 +35,9 @@ public class SecurityConfig {
                         .permitAll()
                         .defaultSuccessUrl("/", true)
                 )
+                .httpBasic(Customizer.withDefaults())
                 .logout(logout -> logout.permitAll())
-                .csrf(csrf -> csrf.disable())
-                .httpBasic(Customizer.withDefaults());
+                .csrf(csrf -> csrf.disable());
 
         return http.build();
     }

@@ -7,7 +7,10 @@ import com.testing.springpractice.repository.entity.PortfolioEntity;
 import com.testing.springpractice.service.PortfolioService;
 import com.testing.springpractice.util.csv.PortfolioCsvUtil;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -121,6 +124,19 @@ public class PortfolioController {
                 System.err.println("Failed to delete the file: " + file.getPath());
             }
         }
+    }
+    @GetMapping("/generate_csv_file")
+    public ResponseEntity<Object> generateCsvFileResource(HttpServletResponse response) {
+        String filePath = "portfolios.csv";
+        List<PortfolioEntity> portfolios = (List<PortfolioEntity>) portfolioRepository.findAll();
+        PortfolioCsvUtil.writePortfolioToCsvServerSide(filePath, portfolios);
+
+        Resource fileResource = new FileSystemResource(filePath);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .header("Content-Disposition", "attachment; filename=\"" + fileResource.getFilename() + "\"")
+                .body(fileResource);
     }
 
 }
