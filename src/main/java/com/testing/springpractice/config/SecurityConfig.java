@@ -1,64 +1,90 @@
 package com.testing.springpractice.config;
 
+import com.testing.springpractice.service.AdvisorService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+
+import java.util.Collection;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers(HttpMethod.GET).hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
-                        .anyRequest().authenticated()
-                )
-                .formLogin(formLogin -> formLogin
-                        .loginPage("/login")
-                        .loginProcessingUrl("/login")
-                        .failureUrl("/login?error")
-                        .permitAll()
-                        .defaultSuccessUrl("/", true)
-                )
-                .httpBasic(Customizer.withDefaults())
-                .logout(logout -> logout.permitAll())
-                .csrf(csrf -> csrf.disable());
+    private final AdvisorService advisorService;
 
-        return http.build();
+    private final PasswordEncoder passwordEncoder;
+
+    public SecurityConfig(AdvisorService advisorService, PasswordEncoder passwordEncoder) {
+        this.advisorService = advisorService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Bean
-    public InMemoryUserDetailsManager userDetailsService() {
-        UserDetails user = User.withUsername("username")
-                .password(passwordEncoder()
-                        .encode("user"))
-                .roles("USER")
-                .build();
-        UserDetails admin = User.withUsername("admin")
-                .password(passwordEncoder()
-                        .encode("admin"))
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(user, admin);
+    public SecurityFilterChain filterChain(HttpSecurity http) {
+        try {
+            http
+                    .authorizeHttpRequests(authz -> authz
+                            .requestMatchers(HttpMethod.GET).hasAnyRole("USER", "ADMIN")
+                            .requestMatchers(HttpMethod.POST).hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.PUT).hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.PATCH).hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
+                            .anyRequest().authenticated()
+                    )
+                    .oauth2Login(oauth2Login -> oauth2Login
+                            .loginPage("/login")
+                            .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
+                                    .userAuthoritiesMapper(this::grantAdminAuthorities)
+                            )
+                    )
+                    .formLogin(formLogin -> formLogin
+                            .loginPage("/login")
+                            .loginProcessingUrl("/login")
+                            .usernameParameter("email")
+                            .failureUrl("/login?error")
+                            .permitAll()
+                            .defaultSuccessUrl("/", true)
+                    )
+                    .authenticationProvider(authenticationProvider())
+                    .httpBasic(Customizer.withDefaults())
+                    .logout(logout -> logout.permitAll())
+                    .csrf(csrf -> csrf.disable());
+        } catch (Exception e) {
+            System.err.println("Exception: " + e.getMessage());
+
+        }
+
+        try {
+            return http.build();
+        } catch (Exception e) {
+            System.err.println("Exception: " + e.getMessage());
+        }
+        return null;
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    private Collection<? extends GrantedAuthority> grantAdminAuthorities(Collection<? extends GrantedAuthority> grantedAuthorities) {
+        return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
     }
+
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(advisorService);
+        authProvider.setPasswordEncoder(passwordEncoder);
+        return authProvider;
+    }
+
 }

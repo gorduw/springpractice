@@ -2,16 +2,20 @@ package com.testing.springpractice.repository.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.testing.springpractice.util.enums.RiskProfileEnum;
-import com.testing.springpractice.util.enums.TimeRangeEnum;
+import com.testing.springpractice.repository.enums.RiskProfileEnum;
+import com.testing.springpractice.repository.enums.TimeRangeEnum;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 
 @Entity
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "portfolio")
 public class PortfolioEntity {
 

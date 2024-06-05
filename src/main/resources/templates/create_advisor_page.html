@@ -10,8 +10,16 @@
 <form th:action="@{/advisors/create}" method="post">
     <label for="name">Name:</label><br>
     <input type="text" id="name" name="name" required/><br> <!-- Input field for advisor name -->
+
     <label for="age">Age:</label><br>
     <input type="number" id="age" name="age" required/><br> <!-- Input field for advisor age -->
+
+    <label for="email">Email:</label><br>
+    <input type="email" id="email" name="email" required/><br> <!-- Input field for advisor email -->
+
+    <label for="password">Password:</label><br>
+    <input type="password" id="password" name="password" required/><br> <!-- Input field for advisor password -->
+
     <input type="submit" value="Create"/> <!-- Button to trigger the creation of the advisor -->
 </form>
 

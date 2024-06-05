@@ -27,13 +27,13 @@ public class AdvisorMvcController {
     }
 
     @GetMapping("/edit/{id}")
-    public String getEditAdvisorPage(Model model, @PathVariable Long id) {
+    public String getEditAdvisorPage(final Model model, final @PathVariable Long id) {
         model.addAttribute("advisorEdit", advisorService.findAdvisorById(id));
         return "edit_advisor_page";
     }
 
     @GetMapping("/{id}/portfolios/page")
-    public String getAdvisorsPortfoliosPage(Model model, @PathVariable Long id) {
+    public String getAdvisorsPortfoliosPage(final Model model, final @PathVariable Long id) {
         model.addAttribute("advisorId", id);
         return "portfolio_page";
     }

@@ -9,16 +9,19 @@ import com.testing.springpractice.util.csv.PortfolioCsvUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,7 +52,7 @@ public class PortfolioController {
 
     @DeleteMapping("/delete")
     @ResponseBody
-    public ResponseEntity deletePortfolio(@RequestParam(value = "id") Long id) {
+    public ResponseEntity deletePortfolio(final @RequestParam(value = "id") Long id) {
         Optional<PortfolioEntity> portfolio = portfolioRepository.findById(id);
         if (portfolio.isPresent()) {
             portfolioRepository.deleteById(id);
@@ -81,57 +84,46 @@ public class PortfolioController {
 
     @GetMapping("/generate_csv")
     public void generateCsvFile(HttpServletResponse response) {
-        String filePath = "portfolios.csv";
         List<PortfolioEntity> portfolios = (List<PortfolioEntity>) portfolioRepository.findAll();
-        PortfolioCsvUtil.writePortfolioToCsvServerSide(filePath, portfolios);
+        Path pathToTempPortfolioFile = PortfolioCsvUtil.writePortfolioToCsvServerSide(portfolios);
 
-        FileInputStream in = null;
-        OutputStream out = null;
-        File file = new File(filePath);
-        try {
-            in = new FileInputStream(file);
-            out = response.getOutputStream();
+
+        try (FileInputStream in = new FileInputStream(String.valueOf(pathToTempPortfolioFile));
+             OutputStream out = response.getOutputStream()) {
 
             response.setContentType("text/csv");
-            response.setHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + pathToTempPortfolioFile.getFileName() + "\"");
+            response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(Files.size(pathToTempPortfolioFile)));
 
             byte[] buffer = new byte[1024];
             int numBytesRead;
 
+            //Encoding issue with other writers (apache comms, guava)
             while ((numBytesRead = in.read(buffer)) != -1) {
                 out.write(buffer, 0, numBytesRead);
             }
 
             out.flush();
         } catch (IOException e) {
-            e.printStackTrace();
-
+            System.err.println("Exception: " + e.getMessage());
         } finally {
+            // Check out PipedOutputStream
 
             try {
-                in.close();
+                Files.deleteIfExists(pathToTempPortfolioFile);
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.println("Failed to delete the file: " + pathToTempPortfolioFile.getFileName());
             }
 
-            try {
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            if (file.exists() && !file.delete()) {
-                System.err.println("Failed to delete the file: " + file.getPath());
-            }
         }
     }
-    @GetMapping("/generate_csv_file")
-    public ResponseEntity<Object> generateCsvFileResource(HttpServletResponse response) {
-        String filePath = "portfolios.csv";
-        List<PortfolioEntity> portfolios = (List<PortfolioEntity>) portfolioRepository.findAll();
-        PortfolioCsvUtil.writePortfolioToCsvServerSide(filePath, portfolios);
 
-        Resource fileResource = new FileSystemResource(filePath);
+    @GetMapping("/generate_csv_file")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Object> generateCsvFileResource(HttpServletResponse response) {
+        List<PortfolioEntity> portfolios = (List<PortfolioEntity>) portfolioRepository.findAll();
+        //Use with small files
+        Resource fileResource = new FileSystemResource(PortfolioCsvUtil.writePortfolioToCsvServerSide(portfolios));
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("text/csv"))

@@ -13,6 +13,7 @@ import com.testing.springpractice.repository.PortfolioRepository;
 import com.testing.springpractice.repository.entity.AdvisorEntity;
 import com.testing.springpractice.repository.entity.AssetHoldingEntity;
 import com.testing.springpractice.repository.entity.PortfolioEntity;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -96,12 +97,12 @@ public class PortfolioService {
         return listOfAssets;
     }
 
-    public List<PortfolioDTO> getAdvisorPortfolios(final Long advisorId) {
-        advisorRepository.findById(advisorId)
-                .orElseThrow(() -> new NotFoundException("Advisor", "ID", advisorId.toString()));
+    public List<PortfolioDTO> getAdvisorPortfolios(final Long id) {
+        advisorRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Advisor", "ID", id.toString()));
 
         List<PortfolioDTO> portfolios = new ArrayList<>();
-        portfolioRepository.findByAdvisorId(advisorId)
+        portfolioRepository.findByAdvisorId(id)
                 .forEach(portfolio -> portfolios.add(PortfolioToDtoMapperImpl.INSTANCE.portfolioToPortfolioDTO(portfolio)));
 
         portfolios.forEach(portfolio -> {
@@ -112,7 +113,6 @@ public class PortfolioService {
     }
 
 
-    //TODO remove after next project review
     @Value("${limit.portfolio.amount}")
     BigDecimal amountLimit;
 
@@ -129,7 +129,11 @@ public class PortfolioService {
         System.out.println("Total amount: " + amount.get());
 
         if (amount.get().compareTo(amountLimit) > 0) {
-            throw new ForbiddenException("Portfolio", amount.toString());
+            try {
+                throw new BadRequestException();
+            } catch (BadRequestException e) {
+                System.err.println("Exception: " + e.getMessage());
+            }
         }
     }
 
