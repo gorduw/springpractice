@@ -15,18 +15,31 @@
 </div>
 
 <script th:inline="javascript">
-        function fetchAdvisorName(advisorId) {
-            fetch('/advisors/name/' + advisorId)
-                .then(response => response.text())
-                .then(name => {
-                    document.getElementById('advisorName').textContent = 'Advisor Name: ' + name;
-                })
-                .catch(error => console.error('Error:', error));
-        }
+    function fetchAdvisorName(advisorId) {
+        fetch('/advisors/name/' + advisorId)
+            .then(response => {
+                if (response.status === 403) {
+                    throw new Error("Access Denied: You don't have permission to view this advisor's name.");
+                }
+                return response.text();
+            })
+            .then(name => {
+                document.getElementById('advisorName').textContent = 'Advisor Name: ' + name;
+            })
+            .catch(error => {
+                document.getElementById('advisorName').textContent = error.message;
+                console.error('Error:', error);
+            });
+    }
 
-            function fetchAdvisorPortfolios(advisorId) {
+    function fetchAdvisorPortfolios(advisorId) {
         fetch('/advisors/' + advisorId + '/portfolios/data')
-            .then(response => response.json())
+            .then(response => {
+                if (response.status === 403) {
+                    throw new Error("Access Denied: You don't have permission to view this advisor's portfolios.");
+                }
+                return response.json();
+            })
             .then(portfolios => {
                 var portfolioDiv = document.getElementById('portfolio');
                 if (portfolios && portfolios.length > 0) {
@@ -60,15 +73,19 @@
                     portfolioDiv.innerHTML = "<h2>No portfolios found for this advisor.</h2>";
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                document.getElementById('portfolio').innerHTML = `<h2>${error.message}</h2>`;
+                console.error('Error:', error);
+            });
     }
-        window.onload = function() {
-            // Retrieve advisorId from the data attribute
-            var advisorId = document.getElementById('advisorIdHolder').getAttribute('data-advisor-id');
 
-            fetchAdvisorName(advisorId);
-            fetchAdvisorPortfolios(advisorId);
-        };
-    </script>
+    window.onload = function() {
+        // Retrieve advisorId from the data attribute
+        var advisorId = document.getElementById('advisorIdHolder').getAttribute('data-advisor-id');
+
+        fetchAdvisorName(advisorId);
+        fetchAdvisorPortfolios(advisorId);
+    };
+</script>
 </body>
 </html>

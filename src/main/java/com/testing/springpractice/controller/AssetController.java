@@ -19,7 +19,7 @@ public class AssetController {
 
     @PostMapping(consumes = "application/json")
     @ResponseBody
-    public ResponseEntity createAsset(@RequestBody AssetHoldingDTO asset) {
+    public ResponseEntity createAsset(final @RequestBody AssetHoldingDTO asset) {
         AssetHoldingDTO newAsset = assetService.createAsset(asset);
         return ResponseEntity.status(HttpStatus.CREATED).body(newAsset);
     }
@@ -32,20 +32,20 @@ public class AssetController {
 
     @GetMapping("/{id}")
     @ResponseBody
-    public ResponseEntity getPortfolioAssignedToAsset(@PathVariable Long id) {
+    public ResponseEntity getPortfolioAssignedToAsset(final @PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(assetService.getPortfoliosByAssetId(id));
     }
 
     @DeleteMapping("/{id}")
     @ResponseBody
-    public ResponseEntity<?> deleteAsset(@PathVariable final Long id) {
+    public ResponseEntity<?> deleteAsset(final @PathVariable Long id) {
         assetService.deleteAsset(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Asset deleted successfully");
     }
 
     @PutMapping(value = "/{id}", consumes = "application/json")
     @ResponseBody
-    public ResponseEntity<?> updateAsset(@PathVariable Long id, @RequestBody AssetHoldingDTO asset) {
+    public ResponseEntity<?> updateAsset(final @PathVariable Long id, final @RequestBody AssetHoldingDTO asset) {
         AssetHoldingDTO updatedAsset = assetService.updateAsset(id, asset);
         return ResponseEntity.ok(updatedAsset);
     }

@@ -1,4 +1,4 @@
-package com.testing.springpractice.util.enums;
+package com.testing.springpractice.repository.enums;
 
 public class RiskProfileEnum {
     public enum RiskProfile {

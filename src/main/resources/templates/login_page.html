@@ -8,8 +8,8 @@
 <p>Login page</p>
 <form action="/login" method="post">
   <div>
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username" required>
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required placeholder="Enter your email"> <!-- Note the name is still 'username' for Spring Security compatibility -->
   </div>
   <div>
     <label for="password">Password:</label>
@@ -19,6 +19,13 @@
     <button type="submit">Login</button>
   </div>
 </form>
+
+<!-- Google Login Button -->
+<div>
+  <a href="/oauth2/authorization/google">
+    <button>Login with Google</button>
+  </a>
+</div>
 
 <!-- Error Message -->
 <div style="color: red;">

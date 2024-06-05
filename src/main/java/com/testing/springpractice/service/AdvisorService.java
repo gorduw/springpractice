@@ -2,35 +2,37 @@ package com.testing.springpractice.service;
 
 
 import com.testing.springpractice.dto.AdvisorDTO;
-import com.testing.springpractice.dto.PortfolioDTO;
 import com.testing.springpractice.exception.NotFoundException;
 import com.testing.springpractice.mapper.AdvisorToDtoMapperImpl;
-import com.testing.springpractice.mapper.PortfolioToDtoMapper;
-import com.testing.springpractice.mapper.PortfolioToDtoMapperImpl;
 import com.testing.springpractice.repository.AdvisorRepository;
 import com.testing.springpractice.repository.PortfolioRepository;
 import com.testing.springpractice.repository.entity.AdvisorEntity;
-import com.testing.springpractice.repository.entity.PortfolioEntity;
-import org.springframework.http.HttpStatus;
+import com.testing.springpractice.repository.model.CustomUserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class AdvisorService {
+public class AdvisorService implements UserDetailsService {
 
     private final AdvisorRepository advisorRepository;
     private final PortfolioRepository portfolioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AdvisorService(AdvisorRepository advisorRepository, PortfolioRepository portfolioRepository) {
+    public AdvisorService(AdvisorRepository advisorRepository, PortfolioRepository portfolioRepository, PasswordEncoder passwordEncoder) {
         this.advisorRepository = advisorRepository;
         this.portfolioRepository = portfolioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
-
-
 
     public List<AdvisorDTO> getAllAdvisorDto() {
         List<AdvisorEntity> advisorEntities = new ArrayList<>();
@@ -50,12 +52,45 @@ public class AdvisorService {
     }
 
     public AdvisorDTO postAdvisorDto(final AdvisorDTO advisorDTO) {
-        AdvisorEntity advisorEntity = advisorRepository.save(AdvisorToDtoMapperImpl.INSTANCE.advisorDtoToAdvisor(advisorDTO));
+        advisorDTO.setPassword(passwordEncoder.encode(advisorDTO.getPassword()));
+        AdvisorEntity advisorEntity = AdvisorToDtoMapperImpl.INSTANCE.advisorDtoToAdvisor(advisorDTO);
+        advisorEntity = advisorRepository.save(advisorEntity);
         return AdvisorToDtoMapperImpl.INSTANCE.advisorToAdvisorDTO(advisorEntity);
     }
 
     public AdvisorDTO updateAdvisor(final AdvisorDTO advisorDTO) {
-        AdvisorEntity advisorEntity = advisorRepository.save(AdvisorToDtoMapperImpl.INSTANCE.advisorDtoToAdvisor(advisorDTO));
-        return AdvisorToDtoMapperImpl.INSTANCE.advisorToAdvisorDTO(advisorEntity);
+        AdvisorEntity existingAdvisorEntity = advisorRepository.findById(advisorDTO.getAdvisorId())
+                .orElseThrow(() -> new NotFoundException("Advisor", "ID", advisorDTO.getAdvisorId().toString()));
+
+        existingAdvisorEntity.setName(advisorDTO.getName());
+        existingAdvisorEntity.setAge(advisorDTO.getAge());
+        existingAdvisorEntity.setEmail(advisorDTO.getEmail());
+
+        AdvisorEntity updatedAdvisorEntity = advisorRepository.save(existingAdvisorEntity);
+
+        return AdvisorToDtoMapperImpl.INSTANCE.advisorToAdvisorDTO(updatedAdvisorEntity);
+    }
+
+    public boolean isRequiredAdvisorLogged(final Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails)) {
+            return false;
+        }
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return userDetails.getId().equals(id);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(final String email) throws UsernameNotFoundException {
+        AdvisorEntity advisorEntity = advisorRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("No user found with email: " + email));
+
+        return new CustomUserDetails(
+                advisorEntity.getEmail(),
+                advisorEntity.getPassword(),
+                List.of(new SimpleGrantedAuthority("ROLE_USER")),
+                advisorEntity.getId(),
+                advisorEntity.isEnabled()
+        );
     }
 }
