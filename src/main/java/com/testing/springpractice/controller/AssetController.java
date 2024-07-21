@@ -2,10 +2,13 @@ package com.testing.springpractice.controller;
 
 
 import com.testing.springpractice.dto.AssetHoldingDTO;
+import com.testing.springpractice.repository.entity.AssetHoldingEntity;
 import com.testing.springpractice.service.AssetService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/asset")
@@ -48,5 +51,15 @@ public class AssetController {
     public ResponseEntity<?> updateAsset(final @PathVariable Long id, final @RequestBody AssetHoldingDTO asset) {
         AssetHoldingDTO updatedAsset = assetService.updateAsset(id, asset);
         return ResponseEntity.ok(updatedAsset);
+    }
+
+    @GetMapping("/stocks")
+    public Flux<AssetHoldingEntity> getStockList() {
+        return assetService.getStockList();
+    }
+
+    @GetMapping("/stocks/{code}")
+    public Mono<AssetHoldingEntity> getStockByCode(@PathVariable String code) {
+        return assetService.getStockByCode(code);
     }
 }

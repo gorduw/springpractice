@@ -51,4 +51,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(AllocationExceededException.class)
+    public ResponseEntity<ErrorDTO> handleAllocationExceededException(AllocationExceededException ex, WebRequest request) {
+        ErrorDTO error = new ErrorDTO(
+                HttpStatus.BAD_REQUEST.value(),
+                "Allocation exceeded for portfolio ID: " + ex.getPortfolioId() + ". " + ex.getMessage(),
+                request.getDescription(false)
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
 }

@@ -2,7 +2,6 @@ package com.testing.springpractice.service;
 
 import com.testing.springpractice.dto.AssetHoldingDTO;
 import com.testing.springpractice.dto.PortfolioDTO;
-import com.testing.springpractice.exception.ForbiddenException;
 import com.testing.springpractice.exception.NotFoundException;
 import com.testing.springpractice.mapper.AssetToDtoMapperImpl;
 import com.testing.springpractice.mapper.PortfolioToDtoMapper;
@@ -13,11 +12,19 @@ import com.testing.springpractice.repository.PortfolioRepository;
 import com.testing.springpractice.repository.entity.AdvisorEntity;
 import com.testing.springpractice.repository.entity.AssetHoldingEntity;
 import com.testing.springpractice.repository.entity.PortfolioEntity;
+import com.testing.springpractice.repository.model.CustomUserDetails;
+import lombok.Setter;
+import lombok.SneakyThrows;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -32,6 +39,9 @@ public class PortfolioService {
     private final AdvisorRepository advisorRepository;
     private final AssetService assetService;
     private final AssetRepository assetRepository;
+    @Setter
+    @Value("${limit.portfolio.amount}")
+    BigDecimal amountLimit;
 
     public PortfolioService(PortfolioRepository portfolioRepository,
                             AdvisorRepository advisorRepository,
@@ -97,8 +107,9 @@ public class PortfolioService {
         return listOfAssets;
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @portfolioService.canAccessAdvisorPortfolios(principal.id, #id)")
     public List<PortfolioDTO> getAdvisorPortfolios(final Long id) {
-        advisorRepository.findById(id)
+        AdvisorEntity advisor = advisorRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Advisor", "ID", id.toString()));
 
         List<PortfolioDTO> portfolios = new ArrayList<>();
@@ -113,9 +124,7 @@ public class PortfolioService {
     }
 
 
-    @Value("${limit.portfolio.amount}")
-    BigDecimal amountLimit;
-
+    @SneakyThrows
     public void validatePortfolioAmount(final List<AssetHoldingEntity> listOfAssets) {
 
         AtomicReference<BigDecimal> amount = new AtomicReference<>(BigDecimal.ZERO);
@@ -129,12 +138,27 @@ public class PortfolioService {
         System.out.println("Total amount: " + amount.get());
 
         if (amount.get().compareTo(amountLimit) > 0) {
-            try {
-                throw new BadRequestException();
-            } catch (BadRequestException e) {
-                System.err.println("Exception: " + e.getMessage());
-            }
+            throw new BadRequestException();
         }
+    }
+
+    public boolean canAccessAdvisorPortfolios(Long userId, Long advisorId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails currentUser = (CustomUserDetails) authentication.getPrincipal();
+
+        return isUserAdmin(currentUser) || isAdvisorOrManager(currentUser, advisorId);
+    }
+
+    private boolean isUserAdmin(CustomUserDetails currentUser) {
+        return currentUser.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+    }
+
+    private boolean isAdvisorOrManager(CustomUserDetails currentUser, Long advisorId) {
+        return currentUser.getId().equals(advisorId) ||
+                advisorRepository.findById(advisorId)
+                        .map(advisorEntity -> currentUser.getId().equals(advisorEntity.getManagerId()))
+                        .orElse(false);
     }
 
 

@@ -10,5 +10,6 @@ import java.util.Optional;
 
 public interface AdvisorRepository extends CrudRepository<AdvisorEntity, Long> {
     List<PortfolioEntity> findPortfoliosById(Long advisorId);
+
     Optional<AdvisorEntity> findByEmail(String email);
 }

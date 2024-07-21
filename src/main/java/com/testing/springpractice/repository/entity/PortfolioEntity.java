@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "portfolio")
-public class PortfolioEntity {
+public class PortfolioEntity extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,7 +40,7 @@ public class PortfolioEntity {
 
     @JsonManagedReference
     @ManyToMany
-    @JoinTable(name = "portfolio_asset_xref",
+    @JoinTable(name = "portfolio_asset_allocation",
             joinColumns = @JoinColumn(name = "portfolio_id"),
             inverseJoinColumns = @JoinColumn(name = "asset_id"))
     private List<AssetHoldingEntity> assets;

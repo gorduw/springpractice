@@ -3,20 +3,21 @@ package com.testing.springpractice.repository.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import lombok.NoArgsConstructor;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
+import java.util.Map;
 
 @Entity
 @Data
 @Table(name = "advisor")
-public class AdvisorEntity {
+@AllArgsConstructor
+@NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
+public class AdvisorEntity extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,4 +38,23 @@ public class AdvisorEntity {
     @Column
     @JsonIgnore
     private boolean enabled;
+
+    @Column
+    private Long managerId;
+
+
+    public AdvisorEntity createAdvisorEntityForCustomOauth2User(Map<String, Object> attributes, PasswordEncoder passwordEncoder, String defaultName, String defaultPassword, Integer age) {
+        String email = (String) attributes.get("email");
+        String name = (String) attributes.get("name");
+
+        AdvisorEntity advisorEntity = new AdvisorEntity();
+        advisorEntity.setEmail(email);
+        advisorEntity.setName(name != null ? name : defaultName);
+        advisorEntity.setAge(age);
+        advisorEntity.setPassword(passwordEncoder.encode(defaultPassword));
+        advisorEntity.setEnabled(true);
+        advisorEntity.setManagerId(null);
+        advisorEntity.setCreatedBy(1L);
+        return advisorEntity;
+    }
 }

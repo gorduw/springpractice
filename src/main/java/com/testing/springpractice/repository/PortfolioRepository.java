@@ -9,4 +9,7 @@ import java.util.List;
 public interface PortfolioRepository extends CrudRepository<PortfolioEntity, Long> {
     @Query("SELECT p FROM PortfolioEntity p WHERE p.advisorEntity.id = :advisorId")
     List<PortfolioEntity> findByAdvisorId(Long advisorId);
+
+    @Query("SELECT p FROM PortfolioEntity p WHERE p.advisorEntity.managerId = :managerId and p.advisorEntity.managerId is not NULL")
+    List<PortfolioEntity> findByManagerId(Long managerId);
 }

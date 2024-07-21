@@ -125,7 +125,7 @@ public class AdvisorController {
     @GetMapping("/{id}/portfolios/data")
     @Operation(summary = "Get advisor portfolios data", description = "Retrieve data for all portfolios managed by a specific advisor.")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved portfolios")
-    @PreAuthorize("@advisorService.isRequiredAdvisorLogged(#id) or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<List<PortfolioDTO>> getAdvisorPortfolios(
             @Parameter(description = "ID of the advisor to retrieve portfolios for", required = true)
             @PathVariable Long id) {

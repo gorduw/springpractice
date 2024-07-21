@@ -52,13 +52,13 @@ public final class PortfolioCsvUtil {
                     );
                 }
 
-                csvPrinter.flush();  // Ensure data is written to the file.
+                csvPrinter.flush();
             }
 
             return tempFile.toAbsolutePath();
 
         } catch (IOException e) {
-            System.err.println("IOException: " + e.getMessage());  // Handle exceptions.
+            System.err.println("IOException: " + e.getMessage());
         }
         return null;
     }
@@ -88,7 +88,12 @@ public final class PortfolioCsvUtil {
             }
             csvPrinter.flush();
         } catch (IOException e) {
-            System.err.println("Exception: " + e.getMessage());
+            try {
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "CSV Generation Error");
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+            System.err.println("IOException: " + e.getMessage());
         }
     }
 }

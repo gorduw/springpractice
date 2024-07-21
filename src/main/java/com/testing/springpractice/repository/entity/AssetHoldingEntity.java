@@ -2,7 +2,6 @@ package com.testing.springpractice.repository.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -12,7 +11,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "asset_holding")
-public class AssetHoldingEntity {
+public class AssetHoldingEntity extends Auditable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,7 +28,7 @@ public class AssetHoldingEntity {
 
     @JsonBackReference
     @ManyToMany
-    @JoinTable(name = "portfolio_asset_xref", joinColumns = @JoinColumn(name = " asset_id"), inverseJoinColumns = @JoinColumn(name = "portfolio_id"))
+    @JoinTable(name = "portfolio_asset_xref", joinColumns = @JoinColumn(name = "asset_id"), inverseJoinColumns = @JoinColumn(name = "portfolio_id"))
     private List<PortfolioEntity> portfolioEntities;
 
     @Override

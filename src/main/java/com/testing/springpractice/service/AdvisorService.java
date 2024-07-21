@@ -9,6 +9,7 @@ import com.testing.springpractice.repository.PortfolioRepository;
 import com.testing.springpractice.repository.entity.AdvisorEntity;
 import com.testing.springpractice.repository.model.CustomUserDetails;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -54,6 +55,16 @@ public class AdvisorService implements UserDetailsService {
     public AdvisorDTO postAdvisorDto(final AdvisorDTO advisorDTO) {
         advisorDTO.setPassword(passwordEncoder.encode(advisorDTO.getPassword()));
         AdvisorEntity advisorEntity = AdvisorToDtoMapperImpl.INSTANCE.advisorDtoToAdvisor(advisorDTO);
+        advisorEntity.setEnabled(true);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+            CustomUserDetails currentUser = (CustomUserDetails) authentication.getPrincipal();
+            if (currentUser.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_MANAGER")) || currentUser.getManagerId() == null) {
+                advisorEntity.setManagerId(currentUser.getId());
+            }
+        }
+
         advisorEntity = advisorRepository.save(advisorEntity);
         return AdvisorToDtoMapperImpl.INSTANCE.advisorToAdvisorDTO(advisorEntity);
     }
@@ -85,12 +96,20 @@ public class AdvisorService implements UserDetailsService {
         AdvisorEntity advisorEntity = advisorRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("No user found with email: " + email));
 
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+
+        if (advisorEntity.isEnabled() && advisorEntity.getManagerId() == null) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_MANAGER"));
+        }
+
         return new CustomUserDetails(
                 advisorEntity.getEmail(),
                 advisorEntity.getPassword(),
-                List.of(new SimpleGrantedAuthority("ROLE_USER")),
+                authorities,
                 advisorEntity.getId(),
-                advisorEntity.isEnabled()
+                advisorEntity.isEnabled(),
+                advisorEntity.getManagerId()
         );
     }
 }

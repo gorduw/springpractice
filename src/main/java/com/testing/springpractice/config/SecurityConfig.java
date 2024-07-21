@@ -12,6 +12,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Collection;
@@ -23,12 +26,13 @@ import java.util.List;
 public class SecurityConfig {
 
     private final AdvisorService advisorService;
-
     private final PasswordEncoder passwordEncoder;
+    private final OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService;
 
-    public SecurityConfig(AdvisorService advisorService, PasswordEncoder passwordEncoder) {
+    public SecurityConfig(AdvisorService advisorService, PasswordEncoder passwordEncoder, OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService) {
         this.advisorService = advisorService;
         this.passwordEncoder = passwordEncoder;
+        this.customOAuth2UserService = customOAuth2UserService;
     }
 
     @Bean
@@ -36,8 +40,8 @@ public class SecurityConfig {
         try {
             http
                     .authorizeHttpRequests(authz -> authz
-                            .requestMatchers(HttpMethod.GET).hasAnyRole("USER", "ADMIN")
-                            .requestMatchers(HttpMethod.POST).hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.GET).hasAnyRole("USER", "ADMIN", "MANAGER")
+                            .requestMatchers(HttpMethod.POST).hasAnyRole("ADMIN", "MANAGER")
                             .requestMatchers(HttpMethod.PUT).hasRole("ADMIN")
                             .requestMatchers(HttpMethod.PATCH).hasRole("ADMIN")
                             .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
@@ -46,7 +50,7 @@ public class SecurityConfig {
                     .oauth2Login(oauth2Login -> oauth2Login
                             .loginPage("/login")
                             .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
-                                    .userAuthoritiesMapper(this::grantAdminAuthorities)
+                                    .userService(customOAuth2UserService)
                             )
                     )
                     .formLogin(formLogin -> formLogin
@@ -63,7 +67,6 @@ public class SecurityConfig {
                     .csrf(csrf -> csrf.disable());
         } catch (Exception e) {
             System.err.println("Exception: " + e.getMessage());
-
         }
 
         try {
@@ -78,7 +81,6 @@ public class SecurityConfig {
         return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
     }
 
-
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -86,5 +88,4 @@ public class SecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder);
         return authProvider;
     }
-
 }

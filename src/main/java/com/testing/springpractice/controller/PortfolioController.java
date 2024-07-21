@@ -4,6 +4,7 @@ package com.testing.springpractice.controller;
 import com.testing.springpractice.dto.PortfolioDTO;
 import com.testing.springpractice.repository.PortfolioRepository;
 import com.testing.springpractice.repository.entity.PortfolioEntity;
+import com.testing.springpractice.service.AdvisorService;
 import com.testing.springpractice.service.PortfolioService;
 import com.testing.springpractice.util.csv.PortfolioCsvUtil;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,9 +34,12 @@ public class PortfolioController {
 
     private PortfolioRepository portfolioRepository;
 
-    public PortfolioController(PortfolioRepository portfolioRepository, PortfolioService portfolioService) {
+    private AdvisorService advisorService;
+
+    public PortfolioController(PortfolioRepository portfolioRepository, PortfolioService portfolioService, AdvisorService advisorService) {
         this.portfolioRepository = portfolioRepository;
         this.portfolioService = portfolioService;
+        this.advisorService = advisorService;
     }
 
     @PostMapping(consumes = "application/json")
